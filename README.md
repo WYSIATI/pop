@@ -7,18 +7,13 @@
 </p>
 
 <p align="center">
-  <a href="https://github.com/WYSIATI/pop/actions"><img src="https://img.shields.io/github/actions/workflow/status/WYSIATI/pop/ci.yml?label=CI" alt="CI"></a>
-  <a href="https://github.com/WYSIATI/pop"><img src="https://img.shields.io/badge/coverage-99%25-brightgreen" alt="Coverage"></a>
   <a href="https://pypi.org/project/pop-framework/"><img src="https://img.shields.io/pypi/v/pop-framework" alt="PyPI"></a>
-  <a href="https://pypi.org/project/pop-framework/"><img src="https://img.shields.io/pypi/pyversions/pop-framework" alt="Python"></a>
-  <img src="https://img.shields.io/badge/license-MIT-blue" alt="License">
+  <a href="https://github.com/WYSIATI/pop/blob/main/LICENSE"><img src="https://img.shields.io/badge/license-MIT-blue" alt="License"></a>
 </p>
 
-<p align="center">
-  <a href="docs/">Documentation</a> |
-  <a href="https://github.com/WYSIATI/pop">Source Code</a> |
-  <a href="https://discord.gg/pop">Discord</a>
-</p>
+---
+
+> **Coding agents:** See **[SKILLS.md](SKILLS.md)** for the complete API guide — tools, agents, multi-agent patterns, streaming, memory, and all imports in one file.
 
 ---
 
@@ -35,21 +30,12 @@
 ## Install
 
 ```bash
-# Recommended
 uv add pop-framework
-
-# With a provider extra
-uv add "pop-framework[openai]"
-uv add "pop-framework[anthropic]"
-uv add "pop-framework[all]"
-```
-
-Or with pip:
-
-```bash
+# or
 pip install pop-framework
-pip install "pop-framework[openai]"
 ```
+
+All 7 providers (OpenAI, Anthropic, Gemini, DeepSeek, Kimi, MiniMax, GLM) are included — no extras needed.
 
 ## Quick Start
 
@@ -72,6 +58,7 @@ That's it. No `StateGraph`, no `RunnableSequence`, no `ChannelWrite`.
 
 | Guide | What it covers |
 |-------|---------------|
+| **[Skills](SKILLS.md)** | **Complete API guide for building agents** |
 | [Providers](docs/providers.md) | Switching LLMs, failover, model adapters |
 | [Streaming](docs/streaming.md) | Real-time events, pattern matching |
 | [Workflows](docs/workflows.md) | Chain, route, parallel, agent, orchestration |
@@ -83,18 +70,15 @@ That's it. No `StateGraph`, no `RunnableSequence`, no `ChannelWrite`.
 
 | Metric | pop | LangChain + LangGraph | Delta |
 |--------|-----|----------------------|-------|
-| Task success rate | ~85% | ~83% | parity |
-| Cost per successful task | $0.012 | $0.018 | 33% lower |
 | Framework overhead | ~0.15ms | ~45ms | ~300x faster |
 | Import time | ~0.17ms | ~1,200ms | ~7,000x faster |
 | Lines of code (avg task) | ~12 | ~42 | 71% less |
 | Dependencies | 2 | 20+ | 90% fewer |
 
-Methodology: [EVAL_STRATEGY.md](EVAL_STRATEGY.md) | Details: [docs/benchmarks.md](docs/benchmarks.md)
+Details: [docs/benchmarks.md](docs/benchmarks.md)
 
 ## Community
 
-- [Discord](https://discord.gg/pop) -- questions, help, showcase
 - [GitHub Issues](https://github.com/WYSIATI/pop/issues) -- bug reports
 - [GitHub Discussions](https://github.com/WYSIATI/pop/discussions) -- feature ideas, Q&A
 
@@ -104,7 +88,9 @@ Methodology: [EVAL_STRATEGY.md](EVAL_STRATEGY.md) | Details: [docs/benchmarks.md
 git clone https://github.com/WYSIATI/pop.git
 cd pop
 uv sync --group dev
-uv run pytest
+uv run pytest              # 327 tests
+uv run ruff check src/     # lint
+uv run mypy src/pop/       # type check (strict)
 ```
 
 ## License

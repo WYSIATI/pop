@@ -2,6 +2,8 @@
 
 from pathlib import Path
 
+import pytest
+
 from pop.memory import MarkdownMemory
 
 
@@ -22,6 +24,33 @@ class TestMarkdownMemoryInit:
         (base / "core").mkdir()
         mem = MarkdownMemory(str(base))
         assert mem.get_core() == {}
+
+    def test_default_base_dir_uses_home(
+        self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch,
+    ) -> None:
+        monkeypatch.setattr(Path, "home", staticmethod(lambda: tmp_path))
+        monkeypatch.delenv("POP_MEMORY_DIR", raising=False)
+        mem = MarkdownMemory()
+        expected = tmp_path / ".pop" / "memory"
+        assert mem._base == expected
+        assert (expected / "core").is_dir()
+
+    def test_env_var_overrides_default(
+        self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch,
+    ) -> None:
+        custom = tmp_path / "custom_memory"
+        monkeypatch.setenv("POP_MEMORY_DIR", str(custom))
+        mem = MarkdownMemory()
+        assert mem._base == custom
+        assert (custom / "core").is_dir()
+
+    def test_explicit_base_dir_takes_precedence(
+        self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch,
+    ) -> None:
+        monkeypatch.setenv("POP_MEMORY_DIR", str(tmp_path / "env_dir"))
+        explicit = tmp_path / "explicit"
+        mem = MarkdownMemory(str(explicit))
+        assert mem._base == explicit
 
 
 class TestMarkdownMemoryStore:

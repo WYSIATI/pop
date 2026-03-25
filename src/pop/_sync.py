@@ -7,13 +7,15 @@ This module provides a single implementation to avoid duplication.
 from __future__ import annotations
 
 import asyncio
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING, Any, TypeVar
 
 if TYPE_CHECKING:
     from collections.abc import Coroutine
 
+_T = TypeVar("_T")
 
-def run_sync(coro: Coroutine[Any, Any, Any]) -> Any:
+
+def run_sync(coro: Coroutine[Any, Any, _T]) -> _T:
     """Run a coroutine synchronously, handling running event loops (e.g. Jupyter)."""
     try:
         loop = asyncio.get_running_loop()

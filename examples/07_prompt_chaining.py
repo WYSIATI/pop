@@ -27,14 +27,23 @@ steps = [
         "Focus on benefits, not features."
     ),
     # Step 2: Translate to Spanish
-    "Translate the following product description to Spanish. Output only the Spanish text:\n\n{prev}",
+    (
+        "Translate the following product description to Spanish. "
+        "Output only the Spanish text:\n\n{prev}"
+    ),
     # Step 3: Create a tweet
-    "Create a catchy tweet (under 280 chars) in Spanish based on this product description:\n\n{prev}",
+    (
+        "Create a catchy tweet (under 280 chars) in Spanish "
+        "based on this product description:\n\n{prev}"
+    ),
 ]
 
 
 async def main() -> None:
-    input_text = "A noise-cancelling wireless headphone with 30-hour battery life, perfect for remote workers"
+    input_text = (
+        "A noise-cancelling wireless headphone with 30-hour battery life, "
+        "perfect for remote workers"
+    )
 
     print(f"Input: {input_text}\n")
     result = await chain(adapter, steps=steps, input_text=input_text)

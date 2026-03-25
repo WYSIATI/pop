@@ -66,10 +66,10 @@ def _type_to_json_schema(annotation: Any) -> dict[str, Any]:
     origin = get_origin(annotation)
     if origin is list:
         args = get_args(annotation)
-        schema: dict[str, Any] = {"type": "array"}
+        array_schema: dict[str, Any] = {"type": "array"}
         if args:
-            schema = {**schema, "items": _type_to_json_schema(args[0])}
-        return schema
+            array_schema = {**array_schema, "items": _type_to_json_schema(args[0])}
+        return array_schema
 
     if origin is dict:
         return {"type": "object"}
@@ -137,7 +137,7 @@ def _build_parameters_schema(
     """Build a JSON Schema parameters dict from function signature."""
     sig = inspect.signature(func)
     hints = {}
-    with contextlib.suppress(Exception):
+    with contextlib.suppress(NameError, TypeError):
         hints = {
             k: v for k, v in inspect.get_annotations(func, eval_str=True).items() if k != "return"
         }

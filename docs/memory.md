@@ -10,6 +10,10 @@ Persistent memory stored as plain markdown files. Human-readable and version-con
 from pop import Agent, tool
 from pop.memory import MarkdownMemory
 
+# Default: stores in ~/.pop/memory
+memory = MarkdownMemory()
+
+# Or specify a custom directory
 memory = MarkdownMemory(base_dir="./agent_memory")
 
 agent = Agent(
@@ -28,12 +32,20 @@ agent = Agent(
 Memory persists across sessions as plain markdown files:
 
 ```
-./agent_memory/
-    core/           -- always in context
-    conversations/  -- session transcripts
-    episodes/       -- past experiences
-    knowledge/      -- domain knowledge
+~/.pop/memory/          (default location)
+    core/               -- always in context
+    conversations/      -- session transcripts
+    episodes/           -- past experiences
+    knowledge/          -- domain knowledge
 ```
+
+## Configuration
+
+| Method | Priority | Example |
+|--------|----------|---------|
+| `base_dir` argument | Highest | `MarkdownMemory(base_dir="./my_memory")` |
+| `POP_MEMORY_DIR` env var | Medium | `export POP_MEMORY_DIR=/data/agent_memory` |
+| Default | Lowest | `~/.pop/memory` |
 
 ## In-Memory (Default)
 

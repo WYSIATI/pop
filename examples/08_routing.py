@@ -36,8 +36,7 @@ def handle_technical(text: str) -> str:
 
 def handle_general(text: str) -> str:
     return (
-        f"[GENERAL SUPPORT] Processing inquiry: '{text[:60]}...'\n"
-        "→ Preparing FAQ-based response."
+        f"[GENERAL SUPPORT] Processing inquiry: '{text[:60]}...'\n→ Preparing FAQ-based response."
     )
 
 

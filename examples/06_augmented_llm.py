@@ -10,7 +10,7 @@ This demo builds a personal finance assistant with calculator and
 expense-tracking tools.
 """
 
-from datetime import datetime
+from datetime import datetime, timezone
 
 from pop import Agent, tool
 
@@ -32,7 +32,7 @@ def add_expense(category: str, amount: float, description: str) -> str:
         "category": category,
         "amount": amount,
         "description": description,
-        "date": datetime.now().strftime("%Y-%m-%d"),
+        "date": datetime.now(tz=timezone.utc).strftime("%Y-%m-%d"),
     }
     _expenses.append(entry)
     return f"Recorded ${amount:.2f} for '{description}' under {category}."

@@ -40,7 +40,7 @@ class FileLogHook:
         }
         self._append(record)
 
-    def _append(self, record: dict) -> None:
+    def _append(self, record: dict[str, object]) -> None:
         self._path.parent.mkdir(parents=True, exist_ok=True)
         with open(self._path, "a", encoding="utf-8") as f:
             f.write(json.dumps(record) + "\n")

@@ -64,7 +64,7 @@ class ModelRouter:
 
                 mod = importlib.import_module(module_path)
                 cls = getattr(mod, class_name)
-                return cls(model, **kwargs)  # type: ignore[return-value]
+                return cls(model, **kwargs)  # type: ignore[no-any-return]
 
             return factory
 

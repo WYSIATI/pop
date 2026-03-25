@@ -6,6 +6,7 @@ Uses the filesystem as the database — every memory entry is a human-readable
 
 from __future__ import annotations
 
+import os
 import re
 import uuid
 from datetime import datetime, timezone
@@ -21,6 +22,17 @@ _TIER_TO_TYPE: dict[str, str] = {
 }
 
 
+def _default_base_dir() -> Path:
+    """Resolve the default memory directory.
+
+    Priority: $POP_MEMORY_DIR env var > ~/.pop/memory
+    """
+    env = os.environ.get("POP_MEMORY_DIR")
+    if env:
+        return Path(env)
+    return Path.home() / ".pop" / "memory"
+
+
 class MarkdownMemory:
     """Persistent memory that stores everything as markdown files on disk.
 
@@ -32,8 +44,8 @@ class MarkdownMemory:
         └── knowledge/      # Tier 4 — domain knowledge
     """
 
-    def __init__(self, base_dir: str) -> None:
-        self._base = Path(base_dir)
+    def __init__(self, base_dir: str | None = None) -> None:
+        self._base = Path(base_dir) if base_dir else _default_base_dir()
         self._ensure_dirs()
 
     # ------------------------------------------------------------------
