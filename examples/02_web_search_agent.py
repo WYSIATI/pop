@@ -51,7 +51,7 @@ agent = Agent(
 result = agent.run("What are the main performance improvements in Python 3.12?")
 
 print(result.output)
-print(f"\n--- Run details ---")
+print("\n--- Run details ---")
 print(f"Steps taken: {len(result.steps)}")
 print(f"Total tokens: {result.token_usage.total}")
 print(f"Cost: ${result.cost:.6f}")

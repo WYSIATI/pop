@@ -257,3 +257,64 @@ class TestModelsInit:
             [Message.user("Hi")]
         )
         assert "response from" in result.content
+
+
+# ---------------------------------------------------------------------------
+# H1: ModelRouter auto-registers default providers
+# ---------------------------------------------------------------------------
+
+
+class TestDefaultProviders:
+    def test_router_has_openai_by_default(self) -> None:
+        """ModelRouter() should have 'openai' registered out of the box."""
+        router = ModelRouter()
+        assert "openai" in router.providers
+
+    def test_router_has_anthropic_by_default(self) -> None:
+        """ModelRouter() should have 'anthropic' registered out of the box."""
+        router = ModelRouter()
+        assert "anthropic" in router.providers
+
+    def test_router_has_deepseek_by_default(self) -> None:
+        """ModelRouter() should have 'deepseek' registered out of the box."""
+        router = ModelRouter()
+        assert "deepseek" in router.providers
+
+    def test_router_has_kimi_by_default(self) -> None:
+        """ModelRouter() should have 'kimi' registered out of the box."""
+        router = ModelRouter()
+        assert "kimi" in router.providers
+
+    def test_router_has_glm_by_default(self) -> None:
+        """ModelRouter() should have 'glm' registered out of the box."""
+        router = ModelRouter()
+        assert "glm" in router.providers
+
+    def test_from_model_string_openai(self, monkeypatch: pytest.MonkeyPatch) -> None:
+        """from_model_string('openai:gpt-4o') returns an OpenAIAdapter."""
+        monkeypatch.setenv("OPENAI_API_KEY", "sk-test-key")
+        router = ModelRouter()
+        adapter = router.from_model_string("openai:gpt-4o")
+
+        from pop.models.openai import OpenAIAdapter
+
+        assert isinstance(adapter, OpenAIAdapter)
+        assert adapter._model == "gpt-4o"  # type: ignore[attr-defined]
+
+    def test_from_model_string_anthropic(self, monkeypatch: pytest.MonkeyPatch) -> None:
+        """from_model_string('anthropic:claude-sonnet') returns an AnthropicAdapter."""
+        monkeypatch.setenv("ANTHROPIC_API_KEY", "sk-ant-test-key")
+        router = ModelRouter()
+        adapter = router.from_model_string("anthropic:claude-sonnet")
+
+        from pop.models.anthropic import AnthropicAdapter
+
+        assert isinstance(adapter, AnthropicAdapter)
+        assert adapter._model == "claude-sonnet"  # type: ignore[attr-defined]
+
+    def test_custom_provider_overrides_default(self) -> None:
+        """Registering 'openai' manually should override the default factory."""
+        router = ModelRouter()
+        router.register("openai", _factory_ok)
+        adapter = router.get_adapter("openai", "custom-model")
+        assert adapter._name == "ok-custom-model"  # type: ignore[attr-defined]

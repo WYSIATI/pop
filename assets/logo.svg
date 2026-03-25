@@ -1,24 +1,23 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 300 90" width="300" height="90">
-  <!-- pop logo: minimal, developer-friendly wordmark -->
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 280 90" width="280" height="90">
+  <!-- pop logo: minimal wordmark with ripple mark -->
 
-  <!-- Small geometric accent: three stacked bars suggesting code/layers -->
-  <rect x="12" y="20" width="36" height="7" rx="3.5" fill="#6366f1"/>
-  <rect x="12" y="34" width="26" height="7" rx="3.5" fill="#8b5cf6"/>
-  <rect x="12" y="48" width="16" height="7" rx="3.5" fill="#a78bfa"/>
+  <!-- Ripple mark: solid coral circle + expanding ring (like a pop!) -->
+  <circle cx="28" cy="36" r="18" fill="none" stroke="#FF6154" stroke-width="2" opacity="0.3"/>
+  <circle cx="28" cy="36" r="10" fill="#FF6154"/>
 
   <!-- "pop" wordmark -->
-  <text x="68" y="68"
-        font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif"
-        font-size="58"
+  <text x="60" y="55"
+        font-family="Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif"
+        font-size="52"
         font-weight="800"
-        fill="#0f172a"
+        fill="#1a1a2e"
         letter-spacing="-1">pop</text>
 
-  <!-- Subtle tagline -->
-  <text x="68" y="84"
-        font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif"
+  <!-- Tagline -->
+  <text x="60" y="73"
+        font-family="Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif"
         font-size="11"
         font-weight="400"
-        fill="#64748b"
+        fill="#94a3b8"
         letter-spacing="0.5">lightweight AI agents</text>
 </svg>

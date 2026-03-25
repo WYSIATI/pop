@@ -732,16 +732,16 @@ graph TB
         UI["UnifiedMessage<br/>─────────────────<br/>chat(messages) → Response<br/>chat_stream(messages) → AsyncIterator<br/>tool_call(messages, tools) → ToolCall<br/>───<br/>Every adapter implements this.<br/>Provider quirks hidden here."]
     end
 
-    subgraph "Provider Adapters (thin wrappers, ~150 lines each)"
+    subgraph "Provider Adapters (httpx-based, no SDKs)"
         direction TB
-        OA["OpenAIAdapter<br/>───<br/>Maps to openai SDK.<br/>Handles function calling format."]
-        AN["AnthropicAdapter<br/>───<br/>Maps to anthropic SDK.<br/>Handles tool_use blocks."]
-        GE["GeminiAdapter<br/>───<br/>Maps to google-genai SDK.<br/>Handles function declarations."]
-        DS["DeepSeekAdapter<br/>───<br/>OpenAI-compatible API.<br/>Reuses OpenAI adapter."]
-        KI["KimiAdapter<br/>───<br/>OpenAI-compatible API.<br/>Custom endpoint."]
-        MM["MiniMaxAdapter<br/>───<br/>Custom SDK format.<br/>Thin mapping layer."]
-        GL["GLMAdapter<br/>───<br/>OpenAI-compatible API.<br/>Zhipu AI endpoint."]
-        CU["CustomAdapter<br/>───<br/>User-provided adapter.<br/>For internal models."]
+        OA["OpenAIAdapter<br/>───<br/>Native httpx adapter.<br/>function calling format.<br/>~150 lines."]
+        AN["AnthropicAdapter<br/>───<br/>Native httpx adapter.<br/>tool_use content blocks.<br/>~150 lines."]
+        GE["GeminiAdapter<br/>───<br/>Native httpx adapter.<br/>functionDeclarations format.<br/>API key as query param.<br/>~150 lines."]
+        DS["DeepSeekAdapter<br/>───<br/>Extends OpenAIAdapter.<br/>base_url: api.deepseek.com<br/>~20 lines."]
+        KI["KimiAdapter<br/>───<br/>Extends OpenAIAdapter.<br/>base_url: api.moonshot.cn<br/>~20 lines."]
+        MM["MiniMaxAdapter<br/>───<br/>Extends OpenAIAdapter.<br/>base_url: api.minimax.chat<br/>~20 lines."]
+        GL["GLMAdapter<br/>───<br/>Extends OpenAIAdapter.<br/>base_url: open.bigmodel.cn<br/>~20 lines."]
+        CU["CustomAdapter<br/>───<br/>User-provided via<br/>register_provider()"]
     end
 
     UA --> MR

@@ -438,3 +438,50 @@ class TestAnthropicAdapterChatStream:
 
             assert len(chunks) == 1
             assert chunks[0].delta_content == "ok"
+
+
+# ---------------------------------------------------------------------------
+# H5: httpx client reuse — AnthropicAdapter creates client once in __init__
+# ---------------------------------------------------------------------------
+
+
+class TestAnthropicAdapterClientReuse:
+    def test_adapter_has_client_attribute(self) -> None:
+        """AnthropicAdapter should have a persistent _client attribute."""
+        from pop.models.anthropic import AnthropicAdapter
+
+        adapter = AnthropicAdapter("claude-3-opus", api_key="sk-test")
+        assert hasattr(adapter, "_client")
+        import httpx
+
+        assert isinstance(adapter._client, httpx.AsyncClient)
+
+    @pytest.mark.asyncio
+    async def test_same_client_used_across_calls(self) -> None:
+        """The same httpx.AsyncClient should be reused across multiple chat() calls."""
+        from unittest.mock import AsyncMock, patch
+
+        from pop.models.anthropic import AnthropicAdapter
+
+        mock_response_data = {
+            "id": "msg_test",
+            "type": "message",
+            "model": "claude-3-opus",
+            "role": "assistant",
+            "content": [{"type": "text", "text": "Hello!"}],
+            "stop_reason": "end_turn",
+            "usage": {"input_tokens": 10, "output_tokens": 5},
+        }
+
+        mock_response = AsyncMock()
+        mock_response.json = lambda: mock_response_data
+        mock_response.raise_for_status = lambda: None
+
+        adapter = AnthropicAdapter("claude-3-opus", api_key="sk-test")
+        with patch.object(
+            adapter._client, "post", new_callable=AsyncMock, return_value=mock_response
+        ):
+            await adapter.chat([Message.user("Hi")])
+            await adapter.chat([Message.user("Hi again")])
+
+            assert adapter._client.post.call_count == 2

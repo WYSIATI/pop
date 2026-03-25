@@ -8,9 +8,13 @@ choice — see FRAMEWORK_ARCHITECTURE.md Section 5.6 for rationale.
 from __future__ import annotations
 
 from dataclasses import dataclass, field
-from datetime import datetime, timezone
 from enum import Enum
-from typing import Any
+from types import MappingProxyType
+from typing import TYPE_CHECKING, Any
+
+if TYPE_CHECKING:
+    from collections.abc import Callable
+    from datetime import datetime
 
 
 class Role(str, Enum):
@@ -159,7 +163,7 @@ class ToolDefinition:
     name: str
     description: str
     parameters: dict[str, Any]
-    function: Any  # The actual callable
+    function: Callable[..., Any]
     is_async: bool = False
 
 
@@ -216,10 +220,6 @@ class DoneEvent(StreamEvent):
     result: AgentResult | None = None
 
 
-def _now() -> datetime:
-    return datetime.now(timezone.utc)
-
-
 @dataclass(frozen=True)
 class AgentState:
     """The complete state of an agent run at a point in time.
@@ -229,8 +229,7 @@ class AgentState:
     """
 
     messages: tuple[Message, ...] = ()
-    tool_results: dict[str, Any] = field(default_factory=dict)
-    metadata: dict[str, Any] = field(default_factory=dict)
+    metadata: MappingProxyType[str, Any] = field(default_factory=lambda: MappingProxyType({}))
     step_count: int = 0
     status: Status = Status.PENDING
     cost_usd: float = 0.0
@@ -240,7 +239,6 @@ class AgentState:
         """Return a new state with an appended message."""
         return AgentState(
             messages=(*self.messages, message),
-            tool_results=self.tool_results,
             metadata=self.metadata,
             step_count=self.step_count,
             status=self.status,
@@ -257,7 +255,6 @@ class AgentState:
         """Return a new state with incremented step count and accumulated cost."""
         return AgentState(
             messages=self.messages,
-            tool_results=self.tool_results,
             metadata=self.metadata,
             step_count=self.step_count + 1,
             status=Status.RUNNING,
@@ -269,7 +266,6 @@ class AgentState:
         """Return a new state with updated status."""
         return AgentState(
             messages=self.messages,
-            tool_results=self.tool_results,
             metadata=self.metadata,
             step_count=self.step_count,
             status=status,

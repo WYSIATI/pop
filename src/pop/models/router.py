@@ -37,6 +37,41 @@ class ModelRouter:
 
     def __init__(self) -> None:
         self._providers: dict[str, AdapterFactory] = {}
+        self._adapter_cache: dict[str, ModelAdapter] = {}
+        self._register_defaults()
+
+    # (provider_name, module_path, class_name)
+    _BUILTIN_PROVIDERS: tuple[tuple[str, str, str], ...] = (
+        ("openai", "pop.models.openai", "OpenAIAdapter"),
+        ("anthropic", "pop.models.anthropic", "AnthropicAdapter"),
+        ("gemini", "pop.models.gemini", "GeminiAdapter"),
+        ("deepseek", "pop.models.deepseek", "DeepSeekAdapter"),
+        ("kimi", "pop.models.kimi", "KimiAdapter"),
+        ("minimax", "pop.models.minimax", "MiniMaxAdapter"),
+        ("glm", "pop.models.glm", "GLMAdapter"),
+    )
+
+    def _register_defaults(self) -> None:
+        """Register built-in provider factories.
+
+        Uses lazy imports via a factory generator — adapter modules are only
+        loaded when a provider is actually used.
+        """
+
+        def _make_factory(module_path: str, class_name: str) -> AdapterFactory:
+            def factory(model: str, **kwargs: Any) -> ModelAdapter:
+                import importlib
+
+                mod = importlib.import_module(module_path)
+                cls = getattr(mod, class_name)
+                return cls(model, **kwargs)  # type: ignore[return-value]
+
+            return factory
+
+        self._providers = {
+            **self._providers,
+            **{name: _make_factory(mod, cls) for name, mod, cls in self._BUILTIN_PROVIDERS},
+        }
 
     @property
     def providers(self) -> dict[str, AdapterFactory]:
@@ -104,14 +139,18 @@ class ModelRouter:
         messages: list[Message],
         tools: list[ToolDefinition] | None = None,
     ) -> ModelResponse:
-        """Try each model in sequence, falling back on failure."""
+        """Try each model in sequence, falling back on failure.
+
+        Adapters are cached by model string to avoid creating a new
+        adapter (and httpx client) on every call.
+        """
         if not model_strings:
             raise ValueError("Fallback chain requires at least one model string")
 
         errors: list[tuple[str, Exception]] = []
 
         for model_str in model_strings:
-            adapter = self.from_model_string(model_str)
+            adapter = self._get_or_create_adapter(model_str)
             try:
                 return await adapter.chat(messages, tools)
             except Exception as exc:
@@ -119,3 +158,12 @@ class ModelRouter:
 
         error_summary = "; ".join(f"{ms}: {type(e).__name__}: {e}" for ms, e in errors)
         raise RuntimeError(f"All models failed. Errors: {error_summary}")
+
+    def _get_or_create_adapter(self, model_str: str) -> ModelAdapter:
+        """Return a cached adapter or create and cache a new one."""
+        if model_str not in self._adapter_cache:
+            self._adapter_cache = {
+                **self._adapter_cache,
+                model_str: self.from_model_string(model_str),
+            }
+        return self._adapter_cache[model_str]

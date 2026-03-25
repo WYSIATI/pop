@@ -63,11 +63,14 @@ async def route(
         f"Respond with only the category name, nothing else."
     )
 
+    # Normalize route keys to lowercase for case-insensitive matching
+    normalized_routes = {k.lower(): v for k, v in routes.items()}
+
     messages = [Message.user(classification_prompt)]
     response = await model_adapter.chat(messages)
     category = response.content.strip().lower()
 
-    handler = routes.get(category)
+    handler = normalized_routes.get(category)
     if handler is None:
         available = ", ".join(sorted(routes.keys()))
         raise ValueError(

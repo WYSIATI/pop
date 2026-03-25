@@ -145,13 +145,16 @@ def _extract_frontmatter_text(raw: str) -> str:
 
 
 def _score_text(body: str, frontmatter: str, keywords: list[str]) -> int:
-    """Score content by counting keyword occurrences in body and frontmatter."""
-    body_lower = body.lower()
-    fm_lower = frontmatter.lower()
+    """Score content by counting word-boundary keyword matches.
+
+    Uses word boundary matching (\\b) to avoid false positives like
+    "search" matching "researching".
+    """
+    combined = f"{frontmatter} {body}".lower()
     score = 0
     for kw in keywords:
-        score += body_lower.count(kw)
-        score += fm_lower.count(kw)
+        pattern = re.compile(rf"\b{re.escape(kw)}\b")
+        score += len(pattern.findall(combined))
     return score
 
 

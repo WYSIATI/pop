@@ -53,9 +53,9 @@ After exhaustive PyPI + GitHub availability checks:
 ### Brand Identity
 
 ```
-Logo concept:    A minimal, geometric "a" mark — think the Astral "a" but for agents
-Colors:          Electric blue (#3B82F6) + black + white — clean, technical
-Font:            Monospace for code, Inter/Geist for docs
+Logo concept:    Bold "pop" wordmark with coral ripple mark — flat, no gradients
+Colors:          Coral (#FF6154) + dark slate (#1a1a2e) + muted gray (#94a3b8)
+Font:            Inter for brand, monospace for code
 Tone:            Technical, confident, no-BS. Like uv/ruff docs.
 Mascot:          None. Clean and professional > cute.
 ```
@@ -544,7 +544,7 @@ This becomes the centerpiece of every launch post and talk.
 
 - Use **Excalidraw** (hand-drawn style) for architecture diagrams — it's trendy and approachable
 - Use **Mermaid** in docs for inline diagrams — renders natively in GitHub and MkDocs
-- Colors: Match brand palette (electric blue #3B82F6, slate #1E293B, white)
+- Colors: Match brand palette (coral #FF6154, dark slate #1a1a2e, muted gray #94a3b8)
 - Keep diagrams simple — max 10 elements per diagram
 - Every diagram should be understandable in 5 seconds
 

@@ -1,16 +1,92 @@
-"""Tests for types module — covering AgentError properties and _now."""
+"""Tests for types module — covering AgentError properties, AgentState, and ToolDefinition."""
 
 from __future__ import annotations
 
-from pop.types import AgentError, ErrorClass, _now
+from types import MappingProxyType
+
+import pytest
+
+from pop.types import AgentError, AgentState, ErrorClass, Status, ToolDefinition
+
+# ---------------------------------------------------------------------------
+# H4: AgentState.tool_results removed, metadata is immutable
+# ---------------------------------------------------------------------------
 
 
-class TestNow:
-    def test_returns_utc_datetime(self) -> None:
-        from datetime import timezone
+class TestAgentStateImmutability:
+    def test_no_tool_results_field(self) -> None:
+        """tool_results field should have been removed from AgentState."""
+        state = AgentState()
+        assert not hasattr(state, "tool_results")
 
-        result = _now()
-        assert result.tzinfo == timezone.utc
+    def test_metadata_is_immutable_mapping(self) -> None:
+        """metadata should be an immutable MappingProxyType."""
+        state = AgentState(metadata=MappingProxyType({"key": "value"}))
+        assert isinstance(state.metadata, MappingProxyType)
+        assert state.metadata["key"] == "value"
+        with pytest.raises(TypeError):
+            state.metadata["key"] = "new"  # type: ignore[index]
+
+    def test_default_metadata_is_empty_immutable(self) -> None:
+        """Default metadata should be an empty MappingProxyType."""
+        state = AgentState()
+        assert isinstance(state.metadata, MappingProxyType)
+        assert len(state.metadata) == 0
+
+    def test_with_message_preserves_metadata(self) -> None:
+        """with_message should carry metadata to the new state."""
+        from pop.types import Message
+
+        meta = MappingProxyType({"foo": "bar"})
+        state = AgentState(metadata=meta)
+        new_state = state.with_message(Message.user("hello"))
+        assert new_state.metadata == meta
+        assert isinstance(new_state.metadata, MappingProxyType)
+
+    def test_with_step_preserves_metadata(self) -> None:
+        """with_step should carry metadata to the new state."""
+        meta = MappingProxyType({"foo": "bar"})
+        state = AgentState(metadata=meta)
+        new_state = state.with_step()
+        assert new_state.metadata == meta
+
+    def test_with_status_preserves_metadata(self) -> None:
+        """with_status should carry metadata to the new state."""
+        meta = MappingProxyType({"foo": "bar"})
+        state = AgentState(metadata=meta)
+        new_state = state.with_status(Status.DONE)
+        assert new_state.metadata == meta
+
+
+# ---------------------------------------------------------------------------
+# M6: ToolDefinition.function typed as Callable
+# ---------------------------------------------------------------------------
+
+
+class TestToolDefinitionFunctionType:
+    def test_function_field_accepts_callable(self) -> None:
+        """ToolDefinition.function should accept any callable."""
+        td = ToolDefinition(
+            name="test",
+            description="test tool",
+            parameters={},
+            function=lambda x: x,
+        )
+        assert callable(td.function)
+
+    def test_function_field_is_callable_type(self) -> None:
+        """ToolDefinition.function annotation should be Callable, not Any."""
+        import inspect
+
+        hints = {
+            k: v for k, v in inspect.get_annotations(ToolDefinition).items() if k == "function"
+        }
+        # The annotation should mention Callable, not Any
+        func_annotation = hints.get("function")
+        # With from __future__ import annotations, annotations are strings
+        assert func_annotation is not None
+        annotation_str = str(func_annotation)
+        assert "Callable" in annotation_str
 
 
 class TestAgentError:

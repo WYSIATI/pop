@@ -8,8 +8,15 @@ progress indicators, or logging pipelines.
 
 import asyncio
 
-from pop import Agent, Runner, tool
-from pop import ToolCallEvent, ToolResultEvent, TextDeltaEvent, DoneEvent
+from pop import (
+    Agent,
+    DoneEvent,
+    Runner,
+    TextDeltaEvent,
+    ToolCallEvent,
+    ToolResultEvent,
+    tool,
+)
 
 
 @tool

@@ -652,3 +652,241 @@ async def test_tool_call_no_call_id():
     result = await agent.arun("Add")
 
     assert result.output == "3"
+
+
+# ---------------------------------------------------------------------------
+# 23. Agent has `name` property (defaults to "agent")
+# ---------------------------------------------------------------------------
+
+
+def test_agent_name_defaults_to_agent():
+    """Agent.name defaults to 'agent' when not specified."""
+    adapter = MockAdapter([])
+    agent = Agent(model=adapter, max_steps=1)
+    assert agent.name == "agent"
+
+
+# ---------------------------------------------------------------------------
+# 24. Agent accepts `name` parameter in __init__
+# ---------------------------------------------------------------------------
+
+
+def test_agent_name_custom():
+    """Agent.name can be set via __init__ parameter."""
+    adapter = MockAdapter([])
+    agent = Agent(model=adapter, name="researcher", max_steps=1)
+    assert agent.name == "researcher"
+
+
+# ---------------------------------------------------------------------------
+# 25. Agent has public `instructions` property
+# ---------------------------------------------------------------------------
+
+
+def test_agent_instructions_public():
+    """Agent.instructions is accessible as a public attribute."""
+    adapter = MockAdapter([])
+    agent = Agent(model=adapter, instructions="Be helpful.", max_steps=1)
+    assert agent.instructions == "Be helpful."
+
+
+def test_agent_instructions_defaults_to_empty():
+    """Agent.instructions defaults to empty string."""
+    adapter = MockAdapter([])
+    agent = Agent(model=adapter, max_steps=1)
+    assert agent.instructions == ""
+
+
+# ---------------------------------------------------------------------------
+# 26. Agent satisfies AgentLike protocol for multi-agent patterns
+# ---------------------------------------------------------------------------
+
+
+@pytest.mark.asyncio
+async def test_agent_works_with_pipeline():
+    """Agent instances work directly in multi-agent pipeline pattern."""
+    from pop.multi.patterns import pipeline
+
+    adapter1 = MockAdapter([ModelResponse(content="step one done", token_usage=TokenUsage(10, 5))])
+    adapter2 = MockAdapter([ModelResponse(content="step two done", token_usage=TokenUsage(10, 5))])
+    agent1 = Agent(model=adapter1, name="first", instructions="Do step one", max_steps=5)
+    agent2 = Agent(model=adapter2, name="second", instructions="Do step two", max_steps=5)
+
+    result = await pipeline([agent1, agent2], "start task")
+
+    assert result.output == "step two done"
+    assert len(result.agent_results) == 2
+
+
+@pytest.mark.asyncio
+async def test_agent_works_with_orchestrate():
+    """Agent instances work directly in orchestrate pattern (boss/worker)."""
+    from pop.multi.patterns import orchestrate
+
+    boss_adapter = MockAdapter(
+        [ModelResponse(content="orchestrated result", token_usage=TokenUsage(10, 5))]
+    )
+    worker_adapter = MockAdapter([])
+
+    boss = Agent(model=boss_adapter, name="boss", instructions="Orchestrate workers", max_steps=5)
+    worker = Agent(model=worker_adapter, name="worker_a", instructions="Do subtask A", max_steps=5)
+
+    result = await orchestrate(boss, [worker], "do the thing")
+
+    assert result.output == "orchestrated result"
+    # Verify boss received enriched task with worker descriptions
+    messages_sent = boss_adapter.calls[0]["messages"]
+    all_text = " ".join(m.content for m in messages_sent)
+    assert "worker_a" in all_text
+    assert "Do subtask A" in all_text
+
+
+# ---------------------------------------------------------------------------
+# C2: Fallback chain — Agent with model list uses chat_with_fallback
+# ---------------------------------------------------------------------------
+
+
+class FailingAdapter:
+    """Adapter that always raises on chat()."""
+
+    def __init__(self, error_msg: str = "primary down") -> None:
+        self._error_msg = error_msg
+
+    async def chat(
+        self,
+        messages: list[Message],
+        tools: list[ToolDefinition] | None = None,
+    ) -> ModelResponse:
+        raise ConnectionError(self._error_msg)
+
+    async def chat_stream(self, messages: Any, tools: Any = None):
+        raise NotImplementedError
+
+
+@pytest.mark.asyncio
+async def test_fallback_chain_tries_second_model():
+    """When Agent gets model=list and primary fails, fallback model is used."""
+    from unittest.mock import AsyncMock, patch
+
+    fallback_response = ModelResponse(
+        content="fallback answer", token_usage=TokenUsage(10, 5), model="mock:fallback"
+    )
+
+    mock_chat_with_fallback = AsyncMock(return_value=fallback_response)
+
+    with patch("pop.agent.ModelRouter") as mock_router:
+        router_instance = mock_router.return_value
+        router_instance.from_model_string.return_value = FailingAdapter()
+        router_instance.chat_with_fallback = mock_chat_with_fallback
+
+        agent = Agent(model=["mock:primary", "mock:fallback"], max_steps=5)
+        result = await agent.arun("Hello")
+
+    assert result.output == "fallback answer"
+    mock_chat_with_fallback.assert_called()
+    # Verify the fallback chain was called with both model strings
+    call_args = mock_chat_with_fallback.call_args
+    assert call_args[1]["model_strings"] == ["mock:primary", "mock:fallback"]
+
+
+@pytest.mark.asyncio
+async def test_single_model_does_not_use_fallback():
+    """When Agent gets a single adapter (not a list), no fallback is involved."""
+    adapter = MockAdapter(
+        [
+            ModelResponse(content="direct answer", token_usage=TokenUsage(10, 5)),
+        ]
+    )
+    agent = Agent(model=adapter, max_steps=5)
+    result = await agent.arun("Hello")
+
+    assert result.output == "direct answer"
+    assert len(adapter.calls) == 1
+
+
+@pytest.mark.asyncio
+async def test_fallback_chain_all_fail():
+    """When all models in the fallback chain fail, agent raises RuntimeError."""
+    from unittest.mock import AsyncMock, patch
+
+    mock_chat_with_fallback = AsyncMock(
+        side_effect=RuntimeError("All models failed. Errors: mock:a: ConnectionError: down")
+    )
+
+    with patch("pop.agent.ModelRouter") as mock_router:
+        router_instance = mock_router.return_value
+        router_instance.from_model_string.return_value = FailingAdapter()
+        router_instance.chat_with_fallback = mock_chat_with_fallback
+
+        agent = Agent(model=["mock:a", "mock:b"], max_steps=5)
+
+        with pytest.raises(RuntimeError, match="All models failed"):
+            await agent.arun("Hello")
+
+
+# ---------------------------------------------------------------------------
+# M7: Parallel tool calls — agent handles multiple tool calls in one response
+# ---------------------------------------------------------------------------
+
+
+@pytest.mark.asyncio
+async def test_parallel_tool_calls():
+    """When model returns multiple tool_calls, all should be executed."""
+    add = _add_tool()
+    greet = _async_tool()
+    adapter = MockAdapter(
+        [
+            ModelResponse(
+                content="Let me do both.",
+                tool_calls=(
+                    ToolCall(name="add", args={"a": 10, "b": 20}, call_id="c1"),
+                    ToolCall(name="greet", args={"name": "Alice"}, call_id="c2"),
+                ),
+                token_usage=TokenUsage(10, 5),
+            ),
+            ModelResponse(content="Done: 30 and Hello, Alice!", token_usage=TokenUsage(15, 8)),
+        ]
+    )
+    agent = Agent(model=adapter, tools=[add, greet], max_steps=5)
+    result = await agent.arun("Add 10+20 and greet Alice")
+
+    assert result.output == "Done: 30 and Hello, Alice!"
+    # Two tool call steps should be recorded, plus the final answer step
+    tool_steps = [s for s in result.steps if s.tool_name is not None]
+    assert len(tool_steps) == 2
+    assert tool_steps[0].tool_name == "add"
+    assert tool_steps[0].tool_result == "30"
+    assert tool_steps[1].tool_name == "greet"
+    assert tool_steps[1].tool_result == "Hello, Alice!"
+
+
+@pytest.mark.asyncio
+async def test_parallel_tool_calls_with_error():
+    """When one of multiple parallel tool calls fails, others still execute."""
+    add = _add_tool()
+    fail = _failing_tool()
+    adapter = MockAdapter(
+        [
+            ModelResponse(
+                content="",
+                tool_calls=(
+                    ToolCall(name="add", args={"a": 1, "b": 2}, call_id="c1"),
+                    ToolCall(name="explode", args={"msg": "boom"}, call_id="c2"),
+                ),
+                token_usage=TokenUsage(10, 5),
+            ),
+            ModelResponse(content="Handled errors.", token_usage=TokenUsage(15, 8)),
+        ]
+    )
+    agent = Agent(model=adapter, tools=[add, fail], max_steps=5)
+    result = await agent.arun("Do both")
+
+    assert result.output == "Handled errors."
+    tool_steps = [s for s in result.steps if s.tool_name is not None]
+    assert len(tool_steps) == 2
+    # First tool call succeeds
+    assert tool_steps[0].tool_result == "3"
+    assert tool_steps[0].error is None
+    # Second tool call fails
+    assert tool_steps[1].error is not None
+    assert "Boom: boom" in tool_steps[1].error

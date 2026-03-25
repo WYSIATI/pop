@@ -7,7 +7,6 @@ continues until completion or a budget is exceeded.
 
 from __future__ import annotations
 
-import asyncio
 import uuid
 from datetime import datetime, timezone
 from typing import TYPE_CHECKING, Any
@@ -56,6 +55,8 @@ class Agent:
     def __init__(
         self,
         model: str | list[str] | ModelAdapter,
+        *,
+        name: str = "agent",
         tools: list[ToolDefinition] | None = None,
         instructions: str = "",
         memory: MemoryBackend | None = None,
@@ -65,14 +66,12 @@ class Agent:
         max_retries: int = 3,
         reflect_on_failure: bool = False,
         output_guardrails: list[Callable[[str], bool]] | None = None,
-        confirm_before: list[str] | None = None,
         core_memory: dict[str, str] | None = None,
-        conversation_window: int = 20,
-        planning_model: str | None = None,
     ) -> None:
+        self.name = name
+        self.instructions = instructions
         self._tools: tuple[ToolDefinition, ...] = tuple(tools) if tools else ()
         self._tool_map: dict[str, ToolDefinition] = {t.name: t for t in self._tools}
-        self._instructions = instructions
         self._memory = memory
         self._hook_manager = HookManager(hooks)
         self._max_steps = max_steps
@@ -82,38 +81,27 @@ class Agent:
         self._output_guardrails: tuple[Callable[[str], bool], ...] = (
             tuple(output_guardrails) if output_guardrails else ()
         )
-        self._confirm_before: tuple[str, ...] = tuple(confirm_before) if confirm_before else ()
         self._core_memory: dict[str, str] = dict(core_memory) if core_memory else {}
-        self._conversation_window = conversation_window
-        self._planning_model = planning_model
 
-        # Resolve model adapter
+        # Resolve model adapter — single router instance shared across paths
+        self._router: ModelRouter | None = None
         if isinstance(model, str):
-            self._adapter: ModelAdapter = ModelRouter().from_model_string(model)
+            router = ModelRouter()
+            self._adapter: ModelAdapter = router.from_model_string(model)
             self._fallback_models: list[str] = []
         elif isinstance(model, list):
-            router = ModelRouter()
-            self._adapter = router.from_model_string(model[0])
-            self._fallback_models = model
+            self._router = ModelRouter()
+            self._adapter = self._router.from_model_string(model[0])
+            self._fallback_models = list(model)
         else:
             self._adapter = model
             self._fallback_models = []
 
     def run(self, task: str, **kwargs: Any) -> AgentResult:
         """Synchronous wrapper around arun()."""
-        try:
-            loop = asyncio.get_running_loop()
-        except RuntimeError:
-            loop = None
+        from pop._sync import run_sync
 
-        if loop and loop.is_running():
-            import concurrent.futures
-
-            with concurrent.futures.ThreadPoolExecutor() as pool:
-                future = pool.submit(asyncio.run, self.arun(task, **kwargs))
-                return future.result()
-
-        return asyncio.run(self.arun(task, **kwargs))
+        return run_sync(self.arun(task, **kwargs))
 
     async def arun(self, task: str, **kwargs: Any) -> AgentResult:
         """Async execution of the agent loop."""
@@ -139,7 +127,14 @@ class Agent:
             messages = self._build_messages(state)
             tools_for_model = list(self._tools) if self._tools else None
 
-            response = await self._adapter.chat(messages, tools_for_model)
+            if self._fallback_models and self._router is not None:
+                response = await self._router.chat_with_fallback(
+                    model_strings=self._fallback_models,
+                    messages=messages,
+                    tools=tools_for_model,
+                )
+            else:
+                response = await self._adapter.chat(messages, tools_for_model)
 
             step_cost = _estimate_cost(response.token_usage)
             state = state.with_step(
@@ -159,13 +154,15 @@ class Agent:
 
             # Determine action from response
             if response.tool_calls:
-                tool_call = response.tool_calls[0]
                 state = state.with_message(
                     Message.assistant(response.content, tool_calls=response.tool_calls)
                 )
-                step, state = await self._handle_tool_call(tool_call, response, state, len(steps))
-                steps = [*steps, step]
-                self._hook_manager.fire_step(step)
+                for tool_call in response.tool_calls:
+                    step, state = await self._handle_tool_call(
+                        tool_call, response, state, len(steps)
+                    )
+                    steps = [*steps, step]
+                    self._hook_manager.fire_step(step)
             else:
                 # Final answer candidate
                 action = Action(type=ActionType.FINAL_ANSWER, answer=response.content)
@@ -272,8 +269,8 @@ class Agent:
         messages: list[Message] = []
 
         system_parts: list[str] = []
-        if self._instructions:
-            system_parts.append(self._instructions)
+        if self.instructions:
+            system_parts.append(self.instructions)
         if self._core_memory:
             core_lines = [f"- {k}: {v}" for k, v in self._core_memory.items()]
             system_parts.append("Core memory:\n" + "\n".join(core_lines))

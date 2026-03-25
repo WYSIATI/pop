@@ -6,18 +6,12 @@ to another agent and returns its output as the tool result.
 
 from __future__ import annotations
 
-from typing import Any, Protocol
+from typing import TYPE_CHECKING, Any
 
-from pop.types import AgentResult, ToolDefinition
+from pop.types import ToolDefinition
 
-
-class AgentLike(Protocol):
-    """Minimal protocol for an agent that can be handed off to."""
-
-    name: str
-    instructions: str
-
-    async def arun(self, task: str, **kwargs: Any) -> AgentResult: ...
+if TYPE_CHECKING:
+    from pop.multi.patterns import AgentLike
 
 
 def handoff(agent: AgentLike, when: str = "") -> ToolDefinition:

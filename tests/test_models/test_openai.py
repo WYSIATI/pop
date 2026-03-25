@@ -464,3 +464,53 @@ class TestOpenAIAdapterChatStream:
 
             assert len(chunks) == 1
             assert chunks[0].delta_content == "ok"
+
+
+# ---------------------------------------------------------------------------
+# H5: httpx client reuse — OpenAIAdapter creates client once in __init__
+# ---------------------------------------------------------------------------
+
+
+class TestOpenAIAdapterClientReuse:
+    def test_adapter_has_client_attribute(self) -> None:
+        """OpenAIAdapter should have a persistent _client attribute."""
+        from pop.models.openai import OpenAIAdapter
+
+        adapter = OpenAIAdapter("gpt-4o", api_key="sk-test")
+        assert hasattr(adapter, "_client")
+        import httpx
+
+        assert isinstance(adapter._client, httpx.AsyncClient)
+
+    @pytest.mark.asyncio
+    async def test_same_client_used_across_calls(self) -> None:
+        """The same httpx.AsyncClient should be reused across multiple chat() calls."""
+        from unittest.mock import AsyncMock, patch
+
+        from pop.models.openai import OpenAIAdapter
+
+        mock_response_data = {
+            "id": "chatcmpl-test",
+            "model": "gpt-4o",
+            "choices": [
+                {
+                    "index": 0,
+                    "message": {"role": "assistant", "content": "Hello!"},
+                    "finish_reason": "stop",
+                }
+            ],
+            "usage": {"prompt_tokens": 10, "completion_tokens": 5, "total_tokens": 15},
+        }
+
+        mock_response = AsyncMock()
+        mock_response.json = lambda: mock_response_data
+        mock_response.raise_for_status = lambda: None
+
+        adapter = OpenAIAdapter("gpt-4o", api_key="sk-test")
+        with patch.object(
+            adapter._client, "post", new_callable=AsyncMock, return_value=mock_response
+        ):
+            await adapter.chat([Message.user("Hi")])
+            await adapter.chat([Message.user("Hi again")])
+
+            assert adapter._client.post.call_count == 2

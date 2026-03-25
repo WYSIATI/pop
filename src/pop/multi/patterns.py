@@ -114,8 +114,10 @@ async def debate(
     current_task = task
     approved = False
     last_generation = ""
+    completed_rounds = 0
 
-    for round_num in range(1, max_rounds + 1):  # noqa: B007
+    for _ in range(max_rounds):
+        completed_rounds += 1
         gen_result = await generator.arun(current_task)
         last_generation = gen_result.output
         history = [*history, last_generation]
@@ -142,7 +144,7 @@ async def debate(
 
     return DebateResult(
         output=last_generation,
-        rounds=round_num,
+        rounds=completed_rounds,
         approved=approved,
         history=tuple(history),
     )

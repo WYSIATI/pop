@@ -125,6 +125,13 @@ class OpenAIAdapter:
                 f"or pass api_key explicitly."
             )
         self._api_key = resolved_key
+        self._client = httpx.AsyncClient(
+            headers={
+                "Authorization": f"Bearer {self._api_key}",
+                "Content-Type": "application/json",
+            },
+            timeout=120.0,
+        )
 
     async def chat(
         self,
@@ -139,18 +146,12 @@ class OpenAIAdapter:
         if openai_tools:
             payload["tools"] = openai_tools
 
-        async with httpx.AsyncClient() as client:
-            response = await client.post(
-                f"{self._base_url}/chat/completions",
-                headers={
-                    "Authorization": f"Bearer {self._api_key}",
-                    "Content-Type": "application/json",
-                },
-                json=payload,
-                timeout=120.0,
-            )
-            response.raise_for_status()
-            return parse_openai_response(response.json())
+        response = await self._client.post(
+            f"{self._base_url}/chat/completions",
+            json=payload,
+        )
+        response.raise_for_status()
+        return parse_openai_response(response.json())
 
     async def chat_stream(
         self,
@@ -166,19 +167,11 @@ class OpenAIAdapter:
         if openai_tools:
             payload["tools"] = openai_tools
 
-        async with (
-            httpx.AsyncClient() as client,
-            client.stream(
-                "POST",
-                f"{self._base_url}/chat/completions",
-                headers={
-                    "Authorization": f"Bearer {self._api_key}",
-                    "Content-Type": "application/json",
-                },
-                json=payload,
-                timeout=120.0,
-            ) as response,
-        ):
+        async with self._client.stream(
+            "POST",
+            f"{self._base_url}/chat/completions",
+            json=payload,
+        ) as response:
             response.raise_for_status()
             async for line in response.aiter_lines():
                 if not line.startswith("data: "):

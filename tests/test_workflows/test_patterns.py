@@ -138,6 +138,22 @@ async def test_route_unknown_route_raises() -> None:
 
 
 @pytest.mark.asyncio
+async def test_route_case_insensitive_keys() -> None:
+    """Route keys with mixed case are matched case-insensitively."""
+    from pop.workflows.patterns import route
+
+    adapter = MockAdapter(["support"])
+
+    def support_handler(text: str) -> str:
+        return "handled"
+
+    routes = {"Support": support_handler, "Sales": lambda t: "sales"}
+    result = await route(adapter, "help me", routes)
+
+    assert result == "handled"
+
+
+@pytest.mark.asyncio
 async def test_route_strips_whitespace() -> None:
     """Model response with extra whitespace is stripped before matching."""
     from pop.workflows.patterns import route

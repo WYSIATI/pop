@@ -27,7 +27,7 @@
 ## Why pop?
 
 - **5 lines to a working agent** -- define a tool, create an agent, call `run`.
-- **Any LLM provider** -- OpenAI, Anthropic, Gemini, DeepSeek, Kimi. Switch providers by changing one string.
+- **7 LLM providers built-in** -- OpenAI, Anthropic, Gemini, DeepSeek, Kimi, MiniMax, GLM. Switch by changing one string.
 - **~2,500 lines of code** -- read the entire framework in an afternoon.
 - **2 runtime dependencies** -- `httpx` and `pydantic`. Import time under 1ms (lazy imports).
 - **Zero commercial dependencies** -- no forced telemetry, no vendor lock-in.

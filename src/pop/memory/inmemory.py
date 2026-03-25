@@ -78,13 +78,12 @@ class _Entry:
 
 
 def _score_entry(entry: _Entry, keywords: list[str]) -> int:
-    """Score an entry by counting keyword matches in content and tags."""
-    text = entry.content.lower()
-    tag_text = " ".join(entry.tags).lower()
+    """Score an entry by counting word-boundary keyword matches."""
+    import re
+
+    combined = f"{' '.join(entry.tags)} {entry.content}".lower()
     score = 0
     for kw in keywords:
-        if kw in text:
-            score += text.count(kw)
-        if kw in tag_text:
-            score += tag_text.count(kw)
+        pattern = re.compile(rf"\b{re.escape(kw)}\b")
+        score += len(pattern.findall(combined))
     return score
