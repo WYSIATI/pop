@@ -30,11 +30,7 @@ def save_contact(contact: ContactInfo) -> str:
         contact: The contact information to save.
     """
     # In production, this would persist to a real database.
-    return (
-        f"Saved contact: {contact.name} "
-        f"({contact.email}, {contact.phone}) "
-        f"at {contact.company}"
-    )
+    return f"Saved contact: {contact.name} ({contact.email}, {contact.phone}) at {contact.company}"
 
 
 @tool
@@ -54,8 +50,7 @@ agent = Agent(
 )
 
 result = agent.run(
-    "Add a new contact: Jane Doe, jane.doe@startup.io, "
-    "+1-555-0199, works at TechStart AI"
+    "Add a new contact: Jane Doe, jane.doe@startup.io, +1-555-0199, works at TechStart AI"
 )
 
 print(result.output)

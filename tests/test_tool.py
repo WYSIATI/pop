@@ -3,9 +3,7 @@
 from __future__ import annotations
 
 import asyncio
-from typing import Optional
 
-import pytest
 from pydantic import BaseModel
 
 from pop.tool import tool
@@ -139,7 +137,7 @@ def test_schema_optional_param() -> None:
     """Optional[X] is not required, and uses type of X."""
 
     @tool
-    def search(query: str, limit: Optional[int] = None) -> str:
+    def search(query: str, limit: int | None = None) -> str:
         """Search for items.
 
         Args:
@@ -333,11 +331,10 @@ def test_parameters_schema_structure() -> None:
 
 def test_list_without_type_args() -> None:
     """Bare list produces {"type": "object"} in Python 3.10 (no generic origin)."""
-    from pop.tool import _type_to_json_schema
-
     # Bare `list` in Python 3.10: get_origin returns None, falls to default
     # In Python 3.12+: get_origin returns list. Test the actual function directly.
-    import sys
+
+    from pop.tool import _type_to_json_schema
 
     schema = _type_to_json_schema(list)
     # In 3.10 bare list maps to "object" since get_origin is None
@@ -397,10 +394,10 @@ def test_docstring_with_non_args_section_after_args() -> None:
     def compute(x: int) -> int:
         """Compute something.
 
-        Args:
-            x: The input.
-Returns:
-            The result.
+                Args:
+                    x: The input.
+        Returns:
+                    The result.
         """
         return x
 

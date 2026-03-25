@@ -4,17 +4,17 @@ from __future__ import annotations
 
 import pytest
 
-from pop.types import Message, Role, ToolCall, ToolDefinition, TokenUsage, ModelResponse
 from pop.models.openai import (
     messages_to_openai,
-    tools_to_openai,
     parse_openai_response,
+    tools_to_openai,
 )
-
+from pop.types import Message, ToolCall, ToolDefinition
 
 # ---------------------------------------------------------------------------
 # Message conversion
 # ---------------------------------------------------------------------------
+
 
 class TestMessagesToOpenAI:
     def test_user_message(self) -> None:
@@ -46,9 +46,7 @@ class TestMessagesToOpenAI:
     def test_tool_result_message(self) -> None:
         msgs = [Message.tool_result("sunny", tool_call_id="tc_1", name="get_weather")]
         result = messages_to_openai(msgs)
-        assert result == [
-            {"role": "tool", "content": "sunny", "tool_call_id": "tc_1"}
-        ]
+        assert result == [{"role": "tool", "content": "sunny", "tool_call_id": "tc_1"}]
 
     def test_multi_turn_conversation(self) -> None:
         msgs = [
@@ -66,6 +64,7 @@ class TestMessagesToOpenAI:
 # ---------------------------------------------------------------------------
 # Tool definition conversion
 # ---------------------------------------------------------------------------
+
 
 class TestToolsToOpenAI:
     def test_single_tool(self) -> None:
@@ -98,6 +97,7 @@ class TestToolsToOpenAI:
 # ---------------------------------------------------------------------------
 # Response parsing
 # ---------------------------------------------------------------------------
+
 
 class TestParseOpenAIResponse:
     def test_text_response(self) -> None:
@@ -287,8 +287,8 @@ class TestOpenAIAdapterInit:
 class TestOpenAIAdapterChat:
     @pytest.mark.asyncio
     async def test_chat_sends_correct_request(self) -> None:
-        import httpx
         from unittest.mock import AsyncMock, patch
+
         from pop.models.openai import OpenAIAdapter
 
         mock_response_data = {
@@ -324,8 +324,8 @@ class TestOpenAIAdapterChat:
 
     @pytest.mark.asyncio
     async def test_chat_with_tools(self) -> None:
-        import httpx
         from unittest.mock import AsyncMock, patch
+
         from pop.models.openai import OpenAIAdapter
 
         mock_response_data = {
@@ -387,7 +387,8 @@ class TestOpenAIAdapterChat:
 class TestOpenAIAdapterChatStream:
     @pytest.mark.asyncio
     async def test_chat_stream_yields_chunks(self) -> None:
-        from unittest.mock import AsyncMock, patch, MagicMock
+        from unittest.mock import AsyncMock, MagicMock, patch
+
         from pop.models.openai import OpenAIAdapter
 
         lines = [
@@ -426,7 +427,8 @@ class TestOpenAIAdapterChatStream:
 
     @pytest.mark.asyncio
     async def test_chat_stream_skips_non_data_lines(self) -> None:
-        from unittest.mock import AsyncMock, patch, MagicMock
+        from unittest.mock import AsyncMock, MagicMock, patch
+
         from pop.models.openai import OpenAIAdapter
 
         lines = [

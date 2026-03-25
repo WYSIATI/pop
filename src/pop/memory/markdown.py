@@ -132,7 +132,7 @@ def _extract_body(raw: str) -> str:
     """Extract the body content after frontmatter."""
     match = _FRONTMATTER_RE.match(raw)
     if match:
-        return raw[match.end():].strip()
+        return raw[match.end() :].strip()
     return raw.strip()
 
 

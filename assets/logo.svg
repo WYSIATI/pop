@@ -1,0 +1,24 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 300 90" width="300" height="90">
+  <!-- pop logo: minimal, developer-friendly wordmark -->
+
+  <!-- Small geometric accent: three stacked bars suggesting code/layers -->
+  <rect x="12" y="20" width="36" height="7" rx="3.5" fill="#6366f1"/>
+  <rect x="12" y="34" width="26" height="7" rx="3.5" fill="#8b5cf6"/>
+  <rect x="12" y="48" width="16" height="7" rx="3.5" fill="#a78bfa"/>
+
+  <!-- "pop" wordmark -->
+  <text x="68" y="68"
+        font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif"
+        font-size="58"
+        font-weight="800"
+        fill="#0f172a"
+        letter-spacing="-1">pop</text>
+
+  <!-- Subtle tagline -->
+  <text x="68" y="84"
+        font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif"
+        font-size="11"
+        font-weight="400"
+        fill="#64748b"
+        letter-spacing="0.5">lightweight AI agents</text>
+</svg>

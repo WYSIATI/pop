@@ -1,5 +1,5 @@
 [project]
-name = "pop"
+name = "pop-framework"
 version = "0.1.0"
 description = "Fast, lean AI agents. 5 lines to production."
 readme = "README.md"
@@ -30,6 +30,8 @@ openai = ["openai>=1.0"]
 anthropic = ["anthropic>=0.30"]
 gemini = ["google-genai>=1.0"]
 all = ["openai>=1.0", "anthropic>=0.30", "google-genai>=1.0"]
+
+[dependency-groups]
 dev = [
     "pytest>=8.0",
     "pytest-asyncio>=0.23",
@@ -39,10 +41,10 @@ dev = [
 ]
 
 [project.urls]
-Homepage = "https://github.com/chesterlee/pop"
-Documentation = "https://pop.dev"
-Repository = "https://github.com/chesterlee/pop"
-Issues = "https://github.com/chesterlee/pop/issues"
+Homepage = "https://github.com/WYSIATI/pop"
+Documentation = "https://github.com/WYSIATI/pop/tree/main/docs"
+Repository = "https://github.com/WYSIATI/pop"
+Issues = "https://github.com/WYSIATI/pop/issues"
 
 [build-system]
 requires = ["hatchling"]
@@ -54,9 +56,42 @@ packages = ["src/pop"]
 [tool.ruff]
 target-version = "py310"
 line-length = 100
+src = ["src"]
 
 [tool.ruff.lint]
-select = ["E", "F", "W", "I", "N", "UP", "B", "A", "SIM", "TCH"]
+select = ["ALL"]
+ignore = [
+    "D",        # pydocstyle — we write docstrings but don't enforce style
+    "ANN",      # flake8-annotations — type hints are already comprehensive
+    "S",        # flake8-bandit — security handled at review, not lint
+    "FBT",      # flake8-boolean-trap — too opinionated
+    "EM",       # flake8-errmsg — string literals in exceptions are fine
+    "TRY003",   # long exception messages are ok
+    "COM812",   # trailing comma — conflicts with ruff formatter
+    "ISC001",   # implicit string concat — conflicts with ruff formatter
+    "PLR0913",  # too many arguments — agent constructors legitimately need many params
+    "PLR2004",  # magic values — thresholds in benchmarks are fine
+    "T20",      # print — needed in console hook and benchmarks
+    "PLC0415",  # import not at top level — intentional for lazy imports & perf
+    "BLE001",   # blind except — needed for tool error recovery (Reflexion pattern)
+    "RUF022",   # __all__ not sorted — we group by category, not alphabetically
+    "PTH123",   # open() vs Path.open() — both are fine
+    "ARG002",   # unused method argument — hook protocol requires consistent signatures
+    "C901",     # too complex — some parsing functions are inherently complex
+    "PLR0912",  # too many branches — docstring parser needs them
+    "TRY",      # tryceratops — too opinionated for our error handling style
+    "ERA",      # commented-out code — false positives on markdown in strings
+]
+
+[tool.ruff.lint.per-file-ignores]
+"tests/**" = ["ARG", "PLR", "PT", "SLF", "PLC0415", "PERF401", "PLW0108", "RUF059"]
+"benchmarks/**" = ["INP", "T20"]
+"examples/**" = ["INP", "T20"]
+
+[tool.ruff.format]
+quote-style = "double"
+indent-style = "space"
+line-ending = "auto"
 
 [tool.mypy]
 python_version = "3.10"

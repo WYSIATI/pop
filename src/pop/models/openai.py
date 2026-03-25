@@ -4,17 +4,20 @@ from __future__ import annotations
 
 import json
 import os
-from typing import Any, AsyncIterator
+from typing import TYPE_CHECKING, Any
 
 import httpx
 
-from pop.models.base import ModelAdapter, StreamChunk
-from pop.types import Message, ModelResponse, Role, ToolCall, ToolDefinition, TokenUsage
+from pop.models.base import StreamChunk
+from pop.types import Message, ModelResponse, Role, TokenUsage, ToolCall, ToolDefinition
 
+if TYPE_CHECKING:
+    from collections.abc import AsyncIterator
 
 # ---------------------------------------------------------------------------
 # Conversion helpers (pure functions, easy to test)
 # ---------------------------------------------------------------------------
+
 
 def messages_to_openai(messages: list[Message]) -> list[dict[str, Any]]:
     """Convert pop Messages to OpenAI chat message dicts."""
@@ -101,6 +104,7 @@ def parse_openai_response(raw: dict[str, Any]) -> ModelResponse:
 # Adapter class
 # ---------------------------------------------------------------------------
 
+
 class OpenAIAdapter:
     """Adapter for OpenAI-compatible APIs."""
 
@@ -162,8 +166,9 @@ class OpenAIAdapter:
         if openai_tools:
             payload["tools"] = openai_tools
 
-        async with httpx.AsyncClient() as client:
-            async with client.stream(
+        async with (
+            httpx.AsyncClient() as client,
+            client.stream(
                 "POST",
                 f"{self._base_url}/chat/completions",
                 headers={
@@ -172,17 +177,18 @@ class OpenAIAdapter:
                 },
                 json=payload,
                 timeout=120.0,
-            ) as response:
-                response.raise_for_status()
-                async for line in response.aiter_lines():
-                    if not line.startswith("data: "):
-                        continue
-                    data = line[6:]
-                    if data.strip() == "[DONE]":
-                        break
-                    chunk = json.loads(data)
-                    delta = chunk["choices"][0].get("delta", {})
-                    yield StreamChunk(
-                        delta_content=delta.get("content", ""),
-                        finish_reason=chunk["choices"][0].get("finish_reason", "") or "",
-                    )
+            ) as response,
+        ):
+            response.raise_for_status()
+            async for line in response.aiter_lines():
+                if not line.startswith("data: "):
+                    continue
+                data = line[6:]
+                if data.strip() == "[DONE]":
+                    break
+                chunk = json.loads(data)
+                delta = chunk["choices"][0].get("delta", {})
+                yield StreamChunk(
+                    delta_content=delta.get("content", ""),
+                    finish_reason=chunk["choices"][0].get("finish_reason", "") or "",
+                )

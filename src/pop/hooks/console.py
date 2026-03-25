@@ -45,7 +45,6 @@ class ConsoleHook:
         step_count = len(result.steps)
         total_tokens = result.token_usage.total
         print(
-            f"Done! {step_count} steps, ${result.cost:.4f}, "
-            f"{total_tokens} tokens",
+            f"Done! {step_count} steps, ${result.cost:.4f}, {total_tokens} tokens",
             file=sys.stderr,
         )

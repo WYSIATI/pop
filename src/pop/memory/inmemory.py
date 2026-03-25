@@ -62,7 +62,7 @@ class InMemoryStore:
 class _Entry:
     """Internal storage record (not exposed outside this module)."""
 
-    __slots__ = ("entry_id", "content", "tags", "tier")
+    __slots__ = ("content", "entry_id", "tags", "tier")
 
     def __init__(
         self,

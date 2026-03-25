@@ -3,9 +3,12 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
-from typing import AsyncIterator, Protocol
+from typing import TYPE_CHECKING, Protocol
 
-from pop.types import Message, ModelResponse, ToolCall, ToolDefinition, TokenUsage
+if TYPE_CHECKING:
+    from collections.abc import AsyncIterator
+
+    from pop.types import Message, ModelResponse, TokenUsage, ToolCall, ToolDefinition
 
 
 @dataclass(frozen=True)

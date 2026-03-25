@@ -20,12 +20,10 @@ from pop.types import (
     Step,
     StreamEvent,
     TextDeltaEvent,
-    TokenUsage,
     ToolCall,
     ToolCallEvent,
     ToolResultEvent,
 )
-
 
 # ---------------------------------------------------------------------------
 # Mock agent
@@ -183,7 +181,7 @@ async def test_on_step_callback():
 
     collected_steps: list[Step] = []
 
-    got = await runner.arun("task", on_step=lambda s: collected_steps.append(s))
+    await runner.arun("task", on_step=collected_steps.append)
 
     assert len(collected_steps) == 2
     assert collected_steps[0].index == 0
@@ -218,7 +216,7 @@ async def test_hooks_firing():
     hook = MagicMock(spec=Hook)
     runner = Runner(agent, hooks=[hook])
 
-    got = await runner.arun("task")
+    await runner.arun("task")
 
     hook.on_run_start.assert_called_once()
     hook.on_run_end.assert_called_once()

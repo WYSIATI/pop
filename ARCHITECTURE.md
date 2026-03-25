@@ -1,6 +1,6 @@
 # pop Framework Architecture (Eval-Driven, Holistic v2)
 
-This architecture is an iteration grounded in the latest evaluation plan in `/Users/chesli/Developer/temp_agent/EVAL_STRATEGY.md`.
+This architecture is an iteration grounded in the latest evaluation plan in [`EVAL_STRATEGY.md`](EVAL_STRATEGY.md).
 
 ## 1. Architecture Goal
 

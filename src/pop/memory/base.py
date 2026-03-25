@@ -17,9 +17,7 @@ class MemoryBackend(Protocol):
         """Search memory and return top_k most relevant content strings."""
         ...
 
-    def store(
-        self, content: str, tags: list[str] | None = None, tier: str = "episodes"
-    ) -> str:
+    def store(self, content: str, tags: list[str] | None = None, tier: str = "episodes") -> str:
         """Store content and return a unique entry ID."""
         ...
 

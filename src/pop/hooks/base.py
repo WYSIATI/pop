@@ -2,9 +2,10 @@
 
 from __future__ import annotations
 
-from typing import Protocol, runtime_checkable
+from typing import TYPE_CHECKING, Protocol, runtime_checkable
 
-from pop.types import AgentResult, Step
+if TYPE_CHECKING:
+    from pop.types import AgentResult, Step
 
 
 @runtime_checkable

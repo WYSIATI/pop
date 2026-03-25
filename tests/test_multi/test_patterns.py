@@ -2,11 +2,14 @@
 
 from __future__ import annotations
 
-from typing import Callable
+from typing import TYPE_CHECKING
 
 import pytest
 
 from pop.types import AgentResult
+
+if TYPE_CHECKING:
+    from collections.abc import Callable
 
 
 class MockAgent:

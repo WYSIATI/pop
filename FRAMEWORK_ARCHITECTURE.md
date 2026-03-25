@@ -52,7 +52,7 @@ This document is the authoritative technical design for the pop agent framework.
 | **5-minute onboarding** | From `pip install` to a working agent in under 5 minutes. | Developer adoption is directly correlated with time-to-hello-world. FastAPI wins because you get Swagger in 60 seconds. | LangChain requires understanding `StateGraph`, `TypedDict` with `Annotated` reducers, `ChannelWrite`, and compilation before running a basic agent. |
 | **Zero magic** | Stack traces point to YOUR code, not 6,000 lines of framework internals. | When something breaks at 3 AM in production, you need to find the bug in minutes, not hours. | A simple LLM call in LangChain traverses 9,515 lines across 5 files. Debugging means navigating `RunnableSequence → RunnableParallel → ChannelWrite → Pregel`. |
 | **Pay-for-what-you-use** | No mandatory tracing, no forced commercial dependencies. Observability is opt-in via hooks. | Keeps the core lean. Respects users who don't need (or want to pay for) commercial observability. | `langsmith` is a **mandatory** dependency of `langchain-core`. You cannot install LangChain without also installing a client for their commercial service plus its 9 transitive deps. |
-| **Single package** | One `pip install pop`. No version-matrix nightmares across 21 sub-packages. | Eliminates the "which versions are compatible?" problem that plagues LangChain users daily. | LangChain ecosystem has 21+ packages with interlocking version constraints. Upgrading one package frequently breaks others. |
+| **Single package** | One `pip install pop-framework`. No version-matrix nightmares across 21 sub-packages. | Eliminates the "which versions are compatible?" problem that plagues LangChain users daily. | LangChain ecosystem has 21+ packages with interlocking version constraints. Upgrading one package frequently breaks others. |
 | **Provider-agnostic** | OpenAI, Anthropic, Gemini, DeepSeek, Kimi, MiniMax, GLM — all first-class citizens. | Developers shouldn't be locked into one LLM provider. Switching should be a one-string change. | LangChain requires separate packages per provider (`langchain-openai`, `langchain-anthropic`, etc.) each with their own version constraints. |
 
 ### The Anti-Patterns We Reject
@@ -65,7 +65,7 @@ These anti-patterns are drawn directly from our [LangChain/LangGraph analysis](.
 | 254 methods on the `Runnable` base class | `runnables/base.py` is 6,261 lines with 14 classes | Target: ~10 public API functions total. |
 | 9,515 lines traversed for a single LLM call | `base.py` (6,261) + `serializable.py` (388) + `language_models/base.py` (391) + `chat_models.py` (1,834) + `config.py` (641) | Direct provider call through a thin adapter. <200 lines traversed. |
 | `langsmith` as mandatory commercial dependency | `langsmith` is listed in `langchain-core`'s `[project.dependencies]` — not optional | Zero commercial dependencies. Tracing via opt-in hook. |
-| 21 sub-packages with version matrix | 21 `pyproject.toml` files in the LangChain monorepo | Single package with optional extras: `pip install pop[openai]`. |
+| 21 sub-packages with version matrix | 21 `pyproject.toml` files in the LangChain monorepo | Single package with optional extras: `pip install pop-framework[openai]`. |
 | Graph abstraction for simple loops | `Pregel` engine is 3,669 lines with 57 imports for what is conceptually a while-loop | Loops by default. Graphs only if you really need them (and you probably don't). |
 | 319 classes in langchain-core alone | 319 classes, 64 abstract methods, 116 properties | 5 concepts, ~15 classes total in the whole framework. |
 
@@ -99,7 +99,7 @@ graph LR
         S2["5 concepts to learn:<br/>Agent, Tool, Model,<br/>Memory, Runner"]
         S3["Thin wrappers —<br/>errors surface in<br/>user code"]
         S4["Zero commercial deps.<br/>Optional pluggable tracing."]
-        S5["Single package:<br/>pip install pop"]
+        S5["Single package:<br/>pip install pop-framework"]
         S6["Agent loop as default.<br/>Graph as opt-in."]
         S7["@tool decorator<br/>on any function"]
         S8["Semantic versioning.<br/>Deprecation-free core."]
@@ -2578,7 +2578,7 @@ gantt
 
 | Version | Codename | Key Deliverables | Exit Criteria |
 |---------|----------|-----------------|---------------|
-| **v0.1** | "Hello World" | Core loop, @tool, OpenAI+Anthropic, sync/async, 5 examples | `pip install pop && python examples/01_hello_agent.py` works |
+| **v0.1** | "Hello World" | Core loop, @tool, OpenAI+Anthropic, sync/async, 5 examples | `pip install pop-framework && python examples/01_hello_agent.py` works |
 | **v0.2** | "Multi-Provider" | 7 providers, fallback chain, Pydantic output, markdown memory | Agent works with all 7 providers, memory persists across sessions |
 | **v0.3** | "Multi-Agent" | All 5 multi-agent patterns, human-in-the-loop, 14 examples | All multi-agent examples run successfully |
 | **v0.4** | "Memory & Recovery" | Full 4-tier memory, Reflexion, checkpoint/resume, budget limits | Agent can checkpoint, crash, and resume from markdown files |

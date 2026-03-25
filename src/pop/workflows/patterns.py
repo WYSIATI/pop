@@ -7,10 +7,14 @@ All functions accept a ModelAdapter directly for testability.
 from __future__ import annotations
 
 import asyncio
-from typing import Any, Callable
+from typing import TYPE_CHECKING, Any
 
-from pop.models.base import ModelAdapter
 from pop.types import Message
+
+if TYPE_CHECKING:
+    from collections.abc import Callable
+
+    from pop.models.base import ModelAdapter
 
 
 async def chain(
@@ -67,8 +71,7 @@ async def route(
     if handler is None:
         available = ", ".join(sorted(routes.keys()))
         raise ValueError(
-            f"Model returned unknown route '{category}'. "
-            f"Available routes: {available}"
+            f"Model returned unknown route '{category}'. Available routes: {available}"
         )
 
     return handler(input_text)

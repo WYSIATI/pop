@@ -9,9 +9,10 @@ from __future__ import annotations
 import asyncio
 from collections import Counter
 from dataclasses import dataclass
-from typing import Any, Protocol
+from typing import TYPE_CHECKING, Any, Protocol
 
-from pop.types import AgentResult, ToolDefinition
+if TYPE_CHECKING:
+    from pop.types import AgentResult
 
 
 class AgentLike(Protocol):
@@ -114,7 +115,7 @@ async def debate(
     approved = False
     last_generation = ""
 
-    for round_num in range(1, max_rounds + 1):
+    for round_num in range(1, max_rounds + 1):  # noqa: B007
         gen_result = await generator.arun(current_task)
         last_generation = gen_result.output
         history = [*history, last_generation]
@@ -209,9 +210,7 @@ async def orchestrate(
     Returns:
         The boss agent's final AgentResult.
     """
-    worker_descriptions = "\n".join(
-        f"- {w.name}: {w.instructions}" for w in workers
-    )
+    worker_descriptions = "\n".join(f"- {w.name}: {w.instructions}" for w in workers)
 
     enriched_task = (
         f"{task}\n\n"

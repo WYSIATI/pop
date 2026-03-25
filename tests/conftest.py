@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import pytest
 
-from pop.types import Message, ModelResponse, Role, TokenUsage, ToolCall
+from pop.types import ModelResponse, TokenUsage, ToolCall
 
 
 class MockModelResponses:
@@ -45,9 +45,7 @@ def mock_tool_call_response() -> ModelResponse:
     """A response that requests a tool call."""
     return ModelResponse(
         content="",
-        tool_calls=(
-            ToolCall(name="search", args={"query": "test query"}, call_id="call_1"),
-        ),
+        tool_calls=(ToolCall(name="search", args={"query": "test query"}, call_id="call_1"),),
         token_usage=TokenUsage(input_tokens=100, output_tokens=30),
         model="mock:test",
         finish_reason="tool_calls",

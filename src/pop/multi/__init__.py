@@ -12,12 +12,12 @@ from pop.multi.patterns import (
 )
 
 __all__ = [
-    "handoff",
-    "pipeline",
-    "orchestrate",
-    "debate",
-    "fan_out",
-    "PipelineResult",
     "DebateResult",
     "FanOutResult",
+    "PipelineResult",
+    "debate",
+    "fan_out",
+    "handoff",
+    "orchestrate",
+    "pipeline",
 ]

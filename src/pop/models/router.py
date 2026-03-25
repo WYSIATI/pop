@@ -2,11 +2,13 @@
 
 from __future__ import annotations
 
-from typing import Any, Callable
+from collections.abc import Callable
+from typing import TYPE_CHECKING, Any
 
 from pop.models.base import ModelAdapter
-from pop.types import Message, ModelResponse, ToolDefinition
 
+if TYPE_CHECKING:
+    from pop.types import Message, ModelResponse, ToolDefinition
 
 AdapterFactory = Callable[..., ModelAdapter]
 
@@ -18,9 +20,7 @@ def parse_model_string(model_str: str) -> tuple[str, str]:
     which may itself contain colons (e.g. 'openai:ft:gpt-4o:my-org').
     """
     if ":" not in model_str:
-        raise ValueError(
-            f"Model string '{model_str}' must be in 'provider:model' format"
-        )
+        raise ValueError(f"Model string '{model_str}' must be in 'provider:model' format")
 
     provider, _, model = model_str.partition(":")
 
@@ -96,9 +96,7 @@ class ModelRouter:
             self.register(name, anthropic_factory)
 
         else:
-            raise ValueError(
-                f"Unknown protocol '{protocol}'. Supported: 'openai', 'anthropic'"
-            )
+            raise ValueError(f"Unknown protocol '{protocol}'. Supported: 'openai', 'anthropic'")
 
     async def chat_with_fallback(
         self,
@@ -119,7 +117,5 @@ class ModelRouter:
             except Exception as exc:
                 errors = [*errors, (model_str, exc)]
 
-        error_summary = "; ".join(
-            f"{ms}: {type(e).__name__}: {e}" for ms, e in errors
-        )
+        error_summary = "; ".join(f"{ms}: {type(e).__name__}: {e}" for ms, e in errors)
         raise RuntimeError(f"All models failed. Errors: {error_summary}")

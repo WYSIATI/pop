@@ -7,12 +7,15 @@ original callable.
 
 from __future__ import annotations
 
+import contextlib
 import inspect
 import re
-from typing import Any, Callable, Optional, Union, get_args, get_origin
+from typing import TYPE_CHECKING, Any, Union, get_args, get_origin
 
 from pop.types import ToolDefinition
 
+if TYPE_CHECKING:
+    from collections.abc import Callable
 
 _PYTHON_TYPE_TO_JSON: dict[type, str] = {
     str: "string",
@@ -25,8 +28,10 @@ _PYTHON_TYPE_TO_JSON: dict[type, str] = {
 
 def _is_optional(annotation: Any) -> tuple[bool, Any]:
     """Check if a type annotation is Optional[X] and return (True, X) if so."""
+    import types
+
     origin = get_origin(annotation)
-    if origin is Union:
+    if origin is Union or isinstance(annotation, types.UnionType):
         args = get_args(annotation)
         non_none = tuple(a for a in args if a is not type(None))
         if len(non_none) == 1 and len(args) == 2:
@@ -38,6 +43,7 @@ def _is_pydantic_model(annotation: Any) -> bool:
     """Check if annotation is a Pydantic BaseModel subclass."""
     try:
         from pydantic import BaseModel
+
         return isinstance(annotation, type) and issubclass(annotation, BaseModel)
     except ImportError:
         return False
@@ -52,7 +58,7 @@ def _type_to_json_schema(annotation: Any) -> dict[str, Any]:
     if _is_pydantic_model(annotation):
         schema = dict(annotation.model_json_schema())
         # Remove the top-level title/description that pydantic adds
-        return {k: v for k, v in schema.items() if k not in ("title",)}
+        return {k: v for k, v in schema.items() if k != "title"}
 
     if annotation in _PYTHON_TYPE_TO_JSON:
         return {"type": _PYTHON_TYPE_TO_JSON[annotation]}
@@ -98,12 +104,18 @@ def _parse_docstring(docstring: str | None) -> tuple[str, dict[str, str]]:
     in_args = False
     current_name: str | None = None
 
+    _section_headers = frozenset(
+        {"returns:", "raises:", "yields:", "examples:", "notes:", "references:", "attributes:"}
+    )
+
     for line in lines:
         stripped = line.strip()
         if stripped.lower() == "args:":
             in_args = True
             continue
         if in_args:
+            if stripped.lower() in _section_headers:
+                break
             if stripped == "" or (not line.startswith(" ") and stripped != ""):
                 if not line.startswith(" ") and stripped and stripped.lower() != "args:":
                     break
@@ -125,14 +137,10 @@ def _build_parameters_schema(
     """Build a JSON Schema parameters dict from function signature."""
     sig = inspect.signature(func)
     hints = {}
-    try:
+    with contextlib.suppress(Exception):
         hints = {
-            k: v
-            for k, v in inspect.get_annotations(func, eval_str=True).items()
-            if k != "return"
+            k: v for k, v in inspect.get_annotations(func, eval_str=True).items() if k != "return"
         }
-    except Exception:
-        pass
 
     properties: dict[str, Any] = {}
     required: list[str] = []
@@ -170,10 +178,11 @@ def tool(
 
     Supports both @tool and @tool(name="custom") forms.
     """
+
     def _wrap(fn: Callable[..., Any]) -> ToolDefinition:
         tool_name = name if name is not None else fn.__name__
         summary, arg_descriptions = _parse_docstring(fn.__doc__)
-        description = summary if summary else fn.__name__
+        description = summary or fn.__name__
         is_async = inspect.iscoroutinefunction(fn)
         parameters = _build_parameters_schema(fn, arg_descriptions)
 

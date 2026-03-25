@@ -178,8 +178,6 @@ class ModelResponse:
 class StreamEvent:
     """Base class for streaming events."""
 
-    pass
-
 
 @dataclass(frozen=True)
 class ThinkEvent(StreamEvent):

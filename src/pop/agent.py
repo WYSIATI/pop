@@ -8,14 +8,11 @@ continues until completion or a budget is exceeded.
 from __future__ import annotations
 
 import asyncio
-import inspect
 import uuid
 from datetime import datetime, timezone
-from typing import Any, Callable
+from typing import TYPE_CHECKING, Any
 
 from pop.hooks.base import Hook, HookManager
-from pop.memory.base import MemoryBackend
-from pop.models.base import ModelAdapter
 from pop.models.router import ModelRouter
 from pop.types import (
     Action,
@@ -31,6 +28,11 @@ from pop.types import (
     ToolDefinition,
 )
 
+if TYPE_CHECKING:
+    from collections.abc import Callable
+
+    from pop.memory.base import MemoryBackend
+    from pop.models.base import ModelAdapter
 
 # Rough cost estimation per token (fallback when provider doesn't report cost)
 _DEFAULT_COST_PER_INPUT_TOKEN = 0.000003
@@ -80,9 +82,7 @@ class Agent:
         self._output_guardrails: tuple[Callable[[str], bool], ...] = (
             tuple(output_guardrails) if output_guardrails else ()
         )
-        self._confirm_before: tuple[str, ...] = (
-            tuple(confirm_before) if confirm_before else ()
-        )
+        self._confirm_before: tuple[str, ...] = tuple(confirm_before) if confirm_before else ()
         self._core_memory: dict[str, str] = dict(core_memory) if core_memory else {}
         self._conversation_window = conversation_window
         self._planning_model = planning_model
@@ -108,6 +108,7 @@ class Agent:
 
         if loop and loop.is_running():
             import concurrent.futures
+
             with concurrent.futures.ThreadPoolExecutor() as pool:
                 future = pool.submit(asyncio.run, self.arun(task, **kwargs))
                 return future.result()
@@ -162,23 +163,17 @@ class Agent:
                 state = state.with_message(
                     Message.assistant(response.content, tool_calls=response.tool_calls)
                 )
-                step, state = await self._handle_tool_call(
-                    tool_call, response, state, len(steps)
-                )
+                step, state = await self._handle_tool_call(tool_call, response, state, len(steps))
                 steps = [*steps, step]
                 self._hook_manager.fire_step(step)
             else:
                 # Final answer candidate
                 action = Action(type=ActionType.FINAL_ANSWER, answer=response.content)
-                step = self._make_step(
-                    index=len(steps), response=response, action=action
-                )
+                step = self._make_step(index=len(steps), response=response, action=action)
 
                 if not self._check_guardrails(response.content):
                     # Guardrail failed — add feedback and continue
-                    state = state.with_message(
-                        Message.assistant(response.content)
-                    )
+                    state = state.with_message(Message.assistant(response.content))
                     state = state.with_message(
                         Message.user(
                             "Your previous output was rejected by a guardrail. "
@@ -291,10 +286,7 @@ class Agent:
 
     def _check_guardrails(self, output: str) -> bool:
         """Run all guardrail functions. Returns True if all pass."""
-        for guardrail in self._output_guardrails:
-            if not guardrail(output):
-                return False
-        return True
+        return all(guardrail(output) for guardrail in self._output_guardrails)
 
     def _make_step(
         self,

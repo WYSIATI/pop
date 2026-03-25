@@ -3,22 +3,19 @@
 from __future__ import annotations
 
 import json
-import sys
 from datetime import datetime, timezone
 from pathlib import Path
 
 import pytest
 
-from pop.hooks import ConsoleHook, CostTrackingHook, FileLogHook, Hook, HookManager
+from pop.hooks import ConsoleHook, CostTrackingHook, FileLogHook, HookManager
 from pop.types import (
     Action,
     ActionType,
     AgentResult,
-    AgentState,
     Step,
     TokenUsage,
 )
-
 
 # ---------------------------------------------------------------------------
 # Helpers
@@ -226,9 +223,7 @@ class TestConsoleHook:
         assert "$0.0042" in captured.err
         assert "700 tokens" in captured.err
 
-    def test_on_step_truncates_long_result(
-        self, capsys: pytest.CaptureFixture[str]
-    ) -> None:
+    def test_on_step_truncates_long_result(self, capsys: pytest.CaptureFixture[str]) -> None:
         hook = ConsoleHook()
         long_result = "x" * 200
         step = _make_step(
@@ -267,33 +262,25 @@ class TestCostTrackingHook:
         assert hook.total_tokens == 450
         assert hook.step_count == 2
 
-    def test_warns_at_80_percent_budget(
-        self, capsys: pytest.CaptureFixture[str]
-    ) -> None:
+    def test_warns_at_80_percent_budget(self, capsys: pytest.CaptureFixture[str]) -> None:
         hook = CostTrackingHook(budget=1.0)
         hook.on_step(_make_step(cost_usd=0.81))
         captured = capsys.readouterr()
         assert "warning" in captured.err.lower() or "Warning" in captured.err
 
-    def test_no_warning_below_80_percent(
-        self, capsys: pytest.CaptureFixture[str]
-    ) -> None:
+    def test_no_warning_below_80_percent(self, capsys: pytest.CaptureFixture[str]) -> None:
         hook = CostTrackingHook(budget=1.0)
         hook.on_step(_make_step(cost_usd=0.5))
         captured = capsys.readouterr()
         assert "warning" not in captured.err.lower()
 
-    def test_no_warning_without_budget(
-        self, capsys: pytest.CaptureFixture[str]
-    ) -> None:
+    def test_no_warning_without_budget(self, capsys: pytest.CaptureFixture[str]) -> None:
         hook = CostTrackingHook()
         hook.on_step(_make_step(cost_usd=999.0))
         captured = capsys.readouterr()
         assert "warning" not in captured.err.lower()
 
-    def test_on_run_end_logs_summary(
-        self, capsys: pytest.CaptureFixture[str]
-    ) -> None:
+    def test_on_run_end_logs_summary(self, capsys: pytest.CaptureFixture[str]) -> None:
         hook = CostTrackingHook()
         hook.on_step(_make_step(cost_usd=0.05, token_usage=TokenUsage(100, 50)))
         result = _make_result()

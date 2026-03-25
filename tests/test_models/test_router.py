@@ -4,14 +4,14 @@ from __future__ import annotations
 
 import pytest
 
-from pop.models.router import ModelRouter, parse_model_string
 from pop.models.base import ModelAdapter, StreamChunk
-from pop.types import Message, ModelResponse, ToolCall, TokenUsage, ToolDefinition
-
+from pop.models.router import ModelRouter, parse_model_string
+from pop.types import Message, ModelResponse, ToolDefinition
 
 # ---------------------------------------------------------------------------
 # parse_model_string
 # ---------------------------------------------------------------------------
+
 
 class TestParseModelString:
     def test_valid_openai(self) -> None:
@@ -50,6 +50,7 @@ class TestParseModelString:
 # Helpers — fake adapters for testing
 # ---------------------------------------------------------------------------
 
+
 class FakeAdapter:
     """A minimal fake that satisfies the ModelAdapter protocol for testing."""
 
@@ -82,6 +83,7 @@ def _factory_fail(model: str, **kwargs: object) -> ModelAdapter:
 # ModelRouter — registry
 # ---------------------------------------------------------------------------
 
+
 class TestModelRouterRegistry:
     def test_register_and_get_adapter(self) -> None:
         router = ModelRouter()
@@ -112,6 +114,7 @@ class TestModelRouterRegistry:
 # ---------------------------------------------------------------------------
 # ModelRouter — fallback chain
 # ---------------------------------------------------------------------------
+
 
 class TestFallbackChain:
     @pytest.mark.asyncio
@@ -158,6 +161,7 @@ class TestFallbackChain:
 # ---------------------------------------------------------------------------
 # register_provider convenience
 # ---------------------------------------------------------------------------
+
 
 class TestRegisterProvider:
     def test_register_provider_creates_factory(self) -> None:
@@ -230,7 +234,7 @@ class TestModelsInit:
         assert "test_global" in _router.providers
 
     def test_model_function(self, monkeypatch: pytest.MonkeyPatch) -> None:
-        from pop.models import model, _router
+        from pop.models import _router, model
 
         monkeypatch.setenv("TEST_MODEL_KEY", "sk-model")
         _router.register_provider(
@@ -244,8 +248,7 @@ class TestModelsInit:
 
     @pytest.mark.asyncio
     async def test_chat_convenience(self, monkeypatch: pytest.MonkeyPatch) -> None:
-        from unittest.mock import AsyncMock, patch
-        from pop.models import chat, _router
+        from pop.models import _router
 
         # Register a fake provider
         _router.register("test_chat_prov", _factory_ok)

@@ -4,17 +4,17 @@ from __future__ import annotations
 
 import pytest
 
-from pop.types import Message, Role, ToolCall, ToolDefinition, TokenUsage
 from pop.models.anthropic import (
     messages_to_anthropic,
-    tools_to_anthropic,
     parse_anthropic_response,
+    tools_to_anthropic,
 )
-
+from pop.types import Message, ToolCall, ToolDefinition
 
 # ---------------------------------------------------------------------------
 # Message conversion
 # ---------------------------------------------------------------------------
+
 
 class TestMessagesToAnthropic:
     def test_system_extracted_separately(self) -> None:
@@ -47,7 +47,7 @@ class TestMessagesToAnthropic:
 
     def test_assistant_plain(self) -> None:
         msgs = [Message.user("hi"), Message.assistant("hello")]
-        system, messages = messages_to_anthropic(msgs)
+        _system, messages = messages_to_anthropic(msgs)
         assert messages[1]["role"] == "assistant"
         assert messages[1]["content"] == "hello"
 
@@ -57,7 +57,7 @@ class TestMessagesToAnthropic:
             Message.user("search for test"),
             Message.assistant("", tool_calls=(tc,)),
         ]
-        system, messages = messages_to_anthropic(msgs)
+        _system, messages = messages_to_anthropic(msgs)
         assistant_msg = messages[1]
         assert assistant_msg["role"] == "assistant"
         # Should have content blocks with tool_use type
@@ -77,7 +77,7 @@ class TestMessagesToAnthropic:
             ),
             Message.tool_result("found it", tool_call_id="tu_1", name="search"),
         ]
-        system, messages = messages_to_anthropic(msgs)
+        _system, messages = messages_to_anthropic(msgs)
         tool_msg = messages[2]
         assert tool_msg["role"] == "user"
         assert isinstance(tool_msg["content"], list)
@@ -89,6 +89,7 @@ class TestMessagesToAnthropic:
 # ---------------------------------------------------------------------------
 # Tool definition conversion
 # ---------------------------------------------------------------------------
+
 
 class TestToolsToAnthropic:
     def test_single_tool(self) -> None:
@@ -118,6 +119,7 @@ class TestToolsToAnthropic:
 # ---------------------------------------------------------------------------
 # Response parsing
 # ---------------------------------------------------------------------------
+
 
 class TestParseAnthropicResponse:
     def test_text_response(self) -> None:
@@ -276,6 +278,7 @@ class TestAnthropicAdapterChat:
     @pytest.mark.asyncio
     async def test_chat_sends_correct_request(self) -> None:
         from unittest.mock import AsyncMock, patch
+
         from pop.models.anthropic import AnthropicAdapter
 
         mock_response_data = {
@@ -308,6 +311,7 @@ class TestAnthropicAdapterChat:
     @pytest.mark.asyncio
     async def test_chat_with_system_and_tools(self) -> None:
         from unittest.mock import AsyncMock, patch
+
         from pop.models.anthropic import AnthropicAdapter
 
         mock_response_data = {
@@ -339,7 +343,7 @@ class TestAnthropicAdapterChat:
             )
 
             adapter = AnthropicAdapter("claude-3-opus", api_key="sk-test")
-            result = await adapter.chat(
+            await adapter.chat(
                 [Message.system("Be helpful"), Message.user("Hi")],
                 tools=[tool_def],
             )
@@ -353,12 +357,15 @@ class TestAnthropicAdapterChat:
 class TestAnthropicAdapterChatStream:
     @pytest.mark.asyncio
     async def test_chat_stream_yields_text_chunks(self) -> None:
-        from unittest.mock import AsyncMock, patch, MagicMock
+        from unittest.mock import AsyncMock, MagicMock, patch
+
         from pop.models.anthropic import AnthropicAdapter
 
         lines = [
-            'data: {"type": "content_block_delta", "delta": {"type": "text_delta", "text": "Hello"}}',
-            'data: {"type": "content_block_delta", "delta": {"type": "text_delta", "text": " world"}}',
+            'data: {"type": "content_block_delta",'
+            ' "delta": {"type": "text_delta", "text": "Hello"}}',
+            'data: {"type": "content_block_delta",'
+            ' "delta": {"type": "text_delta", "text": " world"}}',
             'data: {"type": "message_delta", "delta": {"stop_reason": "end_turn"}}',
             'data: {"type": "message_stop"}',
         ]
@@ -394,7 +401,8 @@ class TestAnthropicAdapterChatStream:
 
     @pytest.mark.asyncio
     async def test_chat_stream_skips_non_data_lines(self) -> None:
-        from unittest.mock import AsyncMock, patch, MagicMock
+        from unittest.mock import AsyncMock, MagicMock, patch
+
         from pop.models.anthropic import AnthropicAdapter
 
         lines = [

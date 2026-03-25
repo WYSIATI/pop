@@ -2,30 +2,24 @@
 
 from __future__ import annotations
 
-import asyncio
-from dataclasses import dataclass
 from typing import Any
 
 import pytest
 
 from pop.agent import Agent
 from pop.types import (
-    Action,
     ActionType,
-    AgentResult,
-    AgentState,
     Message,
     ModelResponse,
-    Step,
     TokenUsage,
     ToolCall,
     ToolDefinition,
 )
 
-
 # ---------------------------------------------------------------------------
 # Mock adapter
 # ---------------------------------------------------------------------------
+
 
 class MockAdapter:
     """A configurable mock ModelAdapter for testing."""
@@ -54,6 +48,7 @@ class MockAdapter:
 # ---------------------------------------------------------------------------
 # Helper: simple tool definitions
 # ---------------------------------------------------------------------------
+
 
 def _add_tool() -> ToolDefinition:
     def add(a: int, b: int) -> str:
@@ -111,11 +106,14 @@ def _async_tool() -> ToolDefinition:
 # 1. Simple final answer
 # ---------------------------------------------------------------------------
 
+
 @pytest.mark.asyncio
 async def test_simple_final_answer():
-    adapter = MockAdapter([
-        ModelResponse(content="The answer is 42.", token_usage=TokenUsage(10, 5)),
-    ])
+    adapter = MockAdapter(
+        [
+            ModelResponse(content="The answer is 42.", token_usage=TokenUsage(10, 5)),
+        ]
+    )
     agent = Agent(model=adapter, max_steps=5)
     result = await agent.arun("What is the answer?")
 
@@ -129,17 +127,20 @@ async def test_simple_final_answer():
 # 2. Single tool call
 # ---------------------------------------------------------------------------
 
+
 @pytest.mark.asyncio
 async def test_single_tool_call():
     tool = _add_tool()
-    adapter = MockAdapter([
-        ModelResponse(
-            content="",
-            tool_calls=(ToolCall(name="add", args={"a": 2, "b": 3}, call_id="c1"),),
-            token_usage=TokenUsage(10, 5),
-        ),
-        ModelResponse(content="The sum is 5.", token_usage=TokenUsage(15, 8)),
-    ])
+    adapter = MockAdapter(
+        [
+            ModelResponse(
+                content="",
+                tool_calls=(ToolCall(name="add", args={"a": 2, "b": 3}, call_id="c1"),),
+                token_usage=TokenUsage(10, 5),
+            ),
+            ModelResponse(content="The sum is 5.", token_usage=TokenUsage(15, 8)),
+        ]
+    )
     agent = Agent(model=adapter, tools=[tool], max_steps=5)
     result = await agent.arun("Add 2 and 3")
 
@@ -153,22 +154,25 @@ async def test_single_tool_call():
 # 3. Multi-step tool use
 # ---------------------------------------------------------------------------
 
+
 @pytest.mark.asyncio
 async def test_multi_step_tool_use():
     tool = _add_tool()
-    adapter = MockAdapter([
-        ModelResponse(
-            content="",
-            tool_calls=(ToolCall(name="add", args={"a": 1, "b": 2}, call_id="c1"),),
-            token_usage=TokenUsage(10, 5),
-        ),
-        ModelResponse(
-            content="",
-            tool_calls=(ToolCall(name="add", args={"a": 3, "b": 4}, call_id="c2"),),
-            token_usage=TokenUsage(10, 5),
-        ),
-        ModelResponse(content="Results: 3 and 7", token_usage=TokenUsage(15, 8)),
-    ])
+    adapter = MockAdapter(
+        [
+            ModelResponse(
+                content="",
+                tool_calls=(ToolCall(name="add", args={"a": 1, "b": 2}, call_id="c1"),),
+                token_usage=TokenUsage(10, 5),
+            ),
+            ModelResponse(
+                content="",
+                tool_calls=(ToolCall(name="add", args={"a": 3, "b": 4}, call_id="c2"),),
+                token_usage=TokenUsage(10, 5),
+            ),
+            ModelResponse(content="Results: 3 and 7", token_usage=TokenUsage(15, 8)),
+        ]
+    )
     agent = Agent(model=adapter, tools=[tool], max_steps=5)
     result = await agent.arun("Add 1+2 then 3+4")
 
@@ -182,17 +186,20 @@ async def test_multi_step_tool_use():
 # 4. Tool error recovery
 # ---------------------------------------------------------------------------
 
+
 @pytest.mark.asyncio
 async def test_tool_error_recovery():
     tool = _failing_tool()
-    adapter = MockAdapter([
-        ModelResponse(
-            content="",
-            tool_calls=(ToolCall(name="explode", args={"msg": "test"}, call_id="c1"),),
-            token_usage=TokenUsage(10, 5),
-        ),
-        ModelResponse(content="I handled the error gracefully.", token_usage=TokenUsage(15, 8)),
-    ])
+    adapter = MockAdapter(
+        [
+            ModelResponse(
+                content="",
+                tool_calls=(ToolCall(name="explode", args={"msg": "test"}, call_id="c1"),),
+                token_usage=TokenUsage(10, 5),
+            ),
+            ModelResponse(content="I handled the error gracefully.", token_usage=TokenUsage(15, 8)),
+        ]
+    )
     agent = Agent(model=adapter, tools=[tool], max_steps=5)
     result = await agent.arun("Try exploding")
 
@@ -204,6 +211,7 @@ async def test_tool_error_recovery():
 # ---------------------------------------------------------------------------
 # 5. Max steps budget
 # ---------------------------------------------------------------------------
+
 
 @pytest.mark.asyncio
 async def test_max_steps_budget():
@@ -228,6 +236,7 @@ async def test_max_steps_budget():
 # ---------------------------------------------------------------------------
 # 6. Max cost budget
 # ---------------------------------------------------------------------------
+
 
 @pytest.mark.asyncio
 async def test_max_cost_budget():
@@ -255,6 +264,7 @@ async def test_max_cost_budget():
 # 7. Guardrail enforcement
 # ---------------------------------------------------------------------------
 
+
 @pytest.mark.asyncio
 async def test_guardrail_enforcement():
     call_count = 0
@@ -264,10 +274,12 @@ async def test_guardrail_enforcement():
         call_count += 1
         return "bad" not in output
 
-    adapter = MockAdapter([
-        ModelResponse(content="This is bad output.", token_usage=TokenUsage(10, 5)),
-        ModelResponse(content="This is clean output.", token_usage=TokenUsage(10, 5)),
-    ])
+    adapter = MockAdapter(
+        [
+            ModelResponse(content="This is bad output.", token_usage=TokenUsage(10, 5)),
+            ModelResponse(content="This is clean output.", token_usage=TokenUsage(10, 5)),
+        ]
+    )
     agent = Agent(model=adapter, max_steps=5, output_guardrails=[no_bad_words])
     result = await agent.arun("Say something")
 
@@ -279,13 +291,16 @@ async def test_guardrail_enforcement():
 # 8. System instructions
 # ---------------------------------------------------------------------------
 
+
 @pytest.mark.asyncio
 async def test_system_instructions():
-    adapter = MockAdapter([
-        ModelResponse(content="OK", token_usage=TokenUsage(10, 5)),
-    ])
+    adapter = MockAdapter(
+        [
+            ModelResponse(content="OK", token_usage=TokenUsage(10, 5)),
+        ]
+    )
     agent = Agent(model=adapter, instructions="You are a helpful pirate.")
-    result = await agent.arun("Hello")
+    await agent.arun("Hello")
 
     # The first message sent to the adapter should be the system message
     messages_sent = adapter.calls[0]["messages"]
@@ -297,16 +312,19 @@ async def test_system_instructions():
 # 9. Core memory in context
 # ---------------------------------------------------------------------------
 
+
 @pytest.mark.asyncio
 async def test_core_memory_in_context():
-    adapter = MockAdapter([
-        ModelResponse(content="OK", token_usage=TokenUsage(10, 5)),
-    ])
+    adapter = MockAdapter(
+        [
+            ModelResponse(content="OK", token_usage=TokenUsage(10, 5)),
+        ]
+    )
     agent = Agent(
         model=adapter,
         core_memory={"user_name": "Alice", "preference": "concise"},
     )
-    result = await agent.arun("Hello")
+    await agent.arun("Hello")
 
     messages_sent = adapter.calls[0]["messages"]
     system_messages = [m for m in messages_sent if m.role.value == "system"]
@@ -319,12 +337,15 @@ async def test_core_memory_in_context():
 # 10. Tool schema passed to model
 # ---------------------------------------------------------------------------
 
+
 @pytest.mark.asyncio
 async def test_tool_schema_passed_to_model():
     tool = _add_tool()
-    adapter = MockAdapter([
-        ModelResponse(content="Done", token_usage=TokenUsage(10, 5)),
-    ])
+    adapter = MockAdapter(
+        [
+            ModelResponse(content="Done", token_usage=TokenUsage(10, 5)),
+        ]
+    )
     agent = Agent(model=adapter, tools=[tool])
     await agent.arun("Hello")
 
@@ -338,17 +359,20 @@ async def test_tool_schema_passed_to_model():
 # 11. Step records have correct fields
 # ---------------------------------------------------------------------------
 
+
 @pytest.mark.asyncio
 async def test_step_records():
     tool = _add_tool()
-    adapter = MockAdapter([
-        ModelResponse(
-            content="Let me add.",
-            tool_calls=(ToolCall(name="add", args={"a": 5, "b": 7}, call_id="c1"),),
-            token_usage=TokenUsage(10, 5),
-        ),
-        ModelResponse(content="12", token_usage=TokenUsage(15, 8)),
-    ])
+    adapter = MockAdapter(
+        [
+            ModelResponse(
+                content="Let me add.",
+                tool_calls=(ToolCall(name="add", args={"a": 5, "b": 7}, call_id="c1"),),
+                token_usage=TokenUsage(10, 5),
+            ),
+            ModelResponse(content="12", token_usage=TokenUsage(15, 8)),
+        ]
+    )
     agent = Agent(model=adapter, tools=[tool], max_steps=5)
     result = await agent.arun("Add 5 + 7")
 
@@ -369,16 +393,19 @@ async def test_step_records():
 # 12. AgentResult contains cost and token usage
 # ---------------------------------------------------------------------------
 
+
 @pytest.mark.asyncio
 async def test_agent_result_cost_and_tokens():
-    adapter = MockAdapter([
-        ModelResponse(
-            content="",
-            tool_calls=(ToolCall(name="add", args={"a": 1, "b": 2}, call_id="c1"),),
-            token_usage=TokenUsage(100, 50),
-        ),
-        ModelResponse(content="3", token_usage=TokenUsage(200, 80)),
-    ])
+    adapter = MockAdapter(
+        [
+            ModelResponse(
+                content="",
+                tool_calls=(ToolCall(name="add", args={"a": 1, "b": 2}, call_id="c1"),),
+                token_usage=TokenUsage(100, 50),
+            ),
+            ModelResponse(content="3", token_usage=TokenUsage(200, 80)),
+        ]
+    )
     tool = _add_tool()
     agent = Agent(model=adapter, tools=[tool], max_steps=5)
     result = await agent.arun("Add")
@@ -392,17 +419,20 @@ async def test_agent_result_cost_and_tokens():
 # 13. Reflexion: self-critique on tool failure
 # ---------------------------------------------------------------------------
 
+
 @pytest.mark.asyncio
 async def test_reflexion_on_failure():
     tool = _failing_tool()
-    adapter = MockAdapter([
-        ModelResponse(
-            content="",
-            tool_calls=(ToolCall(name="explode", args={"msg": "x"}, call_id="c1"),),
-            token_usage=TokenUsage(10, 5),
-        ),
-        ModelResponse(content="Recovered after reflection.", token_usage=TokenUsage(15, 8)),
-    ])
+    adapter = MockAdapter(
+        [
+            ModelResponse(
+                content="",
+                tool_calls=(ToolCall(name="explode", args={"msg": "x"}, call_id="c1"),),
+                token_usage=TokenUsage(10, 5),
+            ),
+            ModelResponse(content="Recovered after reflection.", token_usage=TokenUsage(15, 8)),
+        ]
+    )
     agent = Agent(
         model=adapter,
         tools=[tool],
@@ -423,10 +453,13 @@ async def test_reflexion_on_failure():
 # 14. Sync run() wrapper
 # ---------------------------------------------------------------------------
 
+
 def test_sync_run():
-    adapter = MockAdapter([
-        ModelResponse(content="sync result", token_usage=TokenUsage(10, 5)),
-    ])
+    adapter = MockAdapter(
+        [
+            ModelResponse(content="sync result", token_usage=TokenUsage(10, 5)),
+        ]
+    )
     agent = Agent(model=adapter, max_steps=5)
     result = agent.run("Hello")
 
@@ -437,17 +470,20 @@ def test_sync_run():
 # 15. Async tool execution
 # ---------------------------------------------------------------------------
 
+
 @pytest.mark.asyncio
 async def test_async_tool_execution():
     tool = _async_tool()
-    adapter = MockAdapter([
-        ModelResponse(
-            content="",
-            tool_calls=(ToolCall(name="greet", args={"name": "World"}, call_id="c1"),),
-            token_usage=TokenUsage(10, 5),
-        ),
-        ModelResponse(content="Greeting sent!", token_usage=TokenUsage(15, 8)),
-    ])
+    adapter = MockAdapter(
+        [
+            ModelResponse(
+                content="",
+                tool_calls=(ToolCall(name="greet", args={"name": "World"}, call_id="c1"),),
+                token_usage=TokenUsage(10, 5),
+            ),
+            ModelResponse(content="Greeting sent!", token_usage=TokenUsage(15, 8)),
+        ]
+    )
     agent = Agent(model=adapter, tools=[tool], max_steps=5)
     result = await agent.arun("Greet World")
 
@@ -459,17 +495,20 @@ async def test_async_tool_execution():
 # 16. Unknown tool raises error (agent.py line 266)
 # ---------------------------------------------------------------------------
 
+
 @pytest.mark.asyncio
 async def test_unknown_tool_error():
     """Calling a tool not in the registry produces an error step."""
-    adapter = MockAdapter([
-        ModelResponse(
-            content="",
-            tool_calls=(ToolCall(name="nonexistent", args={}, call_id="c1"),),
-            token_usage=TokenUsage(10, 5),
-        ),
-        ModelResponse(content="Handled error.", token_usage=TokenUsage(15, 8)),
-    ])
+    adapter = MockAdapter(
+        [
+            ModelResponse(
+                content="",
+                tool_calls=(ToolCall(name="nonexistent", args={}, call_id="c1"),),
+                token_usage=TokenUsage(10, 5),
+            ),
+            ModelResponse(content="Handled error.", token_usage=TokenUsage(15, 8)),
+        ]
+    )
     agent = Agent(model=adapter, tools=[], max_steps=5)
     result = await agent.arun("Try unknown tool")
 
@@ -482,14 +521,13 @@ async def test_unknown_tool_error():
 # 17. Model as string list (agent.py lines 94-97)
 # ---------------------------------------------------------------------------
 
+
 def test_model_string_list_init(monkeypatch):
     """Agent can be initialized with a list of model strings."""
-    from unittest.mock import patch, MagicMock
+    from unittest.mock import patch
 
     fake_adapter = MockAdapter([])
-    with patch.object(
-        Agent, "__init__", wraps=Agent.__init__
-    ) as _:
+    with patch.object(Agent, "__init__", wraps=Agent.__init__) as _:
         pass
 
     monkeypatch.setenv("OPENAI_API_KEY", "sk-test")
@@ -503,6 +541,7 @@ def test_model_string_list_init(monkeypatch):
 # ---------------------------------------------------------------------------
 # 18. Model as single string (agent.py lines 91-93)
 # ---------------------------------------------------------------------------
+
 
 def test_model_string_init(monkeypatch):
     """Agent can be initialized with a single model string."""
@@ -521,17 +560,20 @@ def test_model_string_init(monkeypatch):
 # 19. Partial result uses tool_result (agent.py line 327-329)
 # ---------------------------------------------------------------------------
 
+
 @pytest.mark.asyncio
 async def test_partial_result_uses_tool_result():
     """When budget exceeded after tool call, partial result has tool_result."""
     tool = _add_tool()
-    adapter = MockAdapter([
-        ModelResponse(
-            content="",
-            tool_calls=(ToolCall(name="add", args={"a": 1, "b": 1}, call_id="c1"),),
-            token_usage=TokenUsage(10000, 5000),
-        ),
-    ])
+    adapter = MockAdapter(
+        [
+            ModelResponse(
+                content="",
+                tool_calls=(ToolCall(name="add", args={"a": 1, "b": 1}, call_id="c1"),),
+                token_usage=TokenUsage(10000, 5000),
+            ),
+        ]
+    )
     agent = Agent(model=adapter, tools=[tool], max_steps=1)
     result = await agent.arun("Add")
 
@@ -544,20 +586,23 @@ async def test_partial_result_uses_tool_result():
 # 20. Max cost budget reached before first step (agent.py line 136)
 # ---------------------------------------------------------------------------
 
+
 @pytest.mark.asyncio
 async def test_max_cost_budget_pre_step():
     """Agent returns partial if cost >= max_cost before LLM call."""
     tool = _add_tool()
     # First step uses lots of tokens, pushing cost over budget for next iteration
-    adapter = MockAdapter([
-        ModelResponse(
-            content="",
-            tool_calls=(ToolCall(name="add", args={"a": 1, "b": 1}, call_id="c1"),),
-            token_usage=TokenUsage(100000, 50000),
-        ),
-        # This response should not be reached since cost exceeds budget
-        ModelResponse(content="Should not reach.", token_usage=TokenUsage(10, 5)),
-    ])
+    adapter = MockAdapter(
+        [
+            ModelResponse(
+                content="",
+                tool_calls=(ToolCall(name="add", args={"a": 1, "b": 1}, call_id="c1"),),
+                token_usage=TokenUsage(100000, 50000),
+            ),
+            # This response should not be reached since cost exceeds budget
+            ModelResponse(content="Should not reach.", token_usage=TokenUsage(10, 5)),
+        ]
+    )
     # Very low budget so that after first step the cost exceeds it
     agent = Agent(model=adapter, tools=[tool], max_steps=10, max_cost=0.0001)
     result = await agent.arun("Add")
@@ -569,12 +614,15 @@ async def test_max_cost_budget_pre_step():
 # 21. Sync run from inside running event loop (agent.py lines 110-113)
 # ---------------------------------------------------------------------------
 
+
 @pytest.mark.asyncio
 async def test_sync_run_from_running_loop():
     """Agent.run() works from within a running event loop using thread pool."""
-    adapter = MockAdapter([
-        ModelResponse(content="from thread pool", token_usage=TokenUsage(10, 5)),
-    ])
+    adapter = MockAdapter(
+        [
+            ModelResponse(content="from thread pool", token_usage=TokenUsage(10, 5)),
+        ]
+    )
     agent = Agent(model=adapter, max_steps=5)
     # We're already in an async context, so run() should detect running loop
     result = agent.run("Hello")
@@ -585,18 +633,21 @@ async def test_sync_run_from_running_loop():
 # 22. Tool call with no call_id uses step index (agent.py line 225)
 # ---------------------------------------------------------------------------
 
+
 @pytest.mark.asyncio
 async def test_tool_call_no_call_id():
     """When tool_call.call_id is empty, agent generates one from step index."""
     tool = _add_tool()
-    adapter = MockAdapter([
-        ModelResponse(
-            content="",
-            tool_calls=(ToolCall(name="add", args={"a": 1, "b": 2}, call_id=""),),
-            token_usage=TokenUsage(10, 5),
-        ),
-        ModelResponse(content="3", token_usage=TokenUsage(15, 8)),
-    ])
+    adapter = MockAdapter(
+        [
+            ModelResponse(
+                content="",
+                tool_calls=(ToolCall(name="add", args={"a": 1, "b": 2}, call_id=""),),
+                token_usage=TokenUsage(10, 5),
+            ),
+            ModelResponse(content="3", token_usage=TokenUsage(15, 8)),
+        ]
+    )
     agent = Agent(model=adapter, tools=[tool], max_steps=5)
     result = await agent.arun("Add")
 

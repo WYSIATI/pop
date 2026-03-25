@@ -8,8 +8,7 @@ from __future__ import annotations
 
 import asyncio
 import uuid
-from dataclasses import replace
-from typing import Any, AsyncIterator, Callable
+from typing import TYPE_CHECKING, Any
 
 from pop.hooks.base import Hook, HookManager
 from pop.types import (
@@ -23,6 +22,9 @@ from pop.types import (
     ToolResultEvent,
 )
 
+if TYPE_CHECKING:
+    from collections.abc import AsyncIterator, Callable
+
 
 class Runner:
     """Execution engine that drives agents with streaming, callbacks, and run management."""
@@ -32,7 +34,19 @@ class Runner:
         self._hook_manager = HookManager(hooks)
 
     def run(self, task: str, **kwargs: Any) -> AgentResult:
-        """Sync execution."""
+        """Sync execution. Handles running event loops (e.g. Jupyter)."""
+        try:
+            loop = asyncio.get_running_loop()
+        except RuntimeError:
+            loop = None
+
+        if loop and loop.is_running():
+            import concurrent.futures
+
+            with concurrent.futures.ThreadPoolExecutor() as pool:
+                future = pool.submit(asyncio.run, self.arun(task, **kwargs))
+                return future.result()
+
         return asyncio.run(self.arun(task, **kwargs))
 
     async def arun(
@@ -54,9 +68,7 @@ class Runner:
                 task, run_id=run_id, timeout=timeout, **kwargs
             )
         except (asyncio.TimeoutError, TimeoutError):
-            self._hook_manager.fire_run_end(
-                AgentResult(output="", error="Timeout", run_id=run_id)
-            )
+            self._hook_manager.fire_run_end(AgentResult(output="", error="Timeout", run_id=run_id))
             raise
 
         result = _with_run_id(result, run_id)

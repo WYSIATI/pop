@@ -36,10 +36,7 @@ class CostTrackingHook:
         self._total_tokens = self._total_tokens + step.token_usage
         self._step_count = self._step_count + 1
 
-        if (
-            self._budget is not None
-            and self._total_cost >= self._budget * 0.8
-        ):
+        if self._budget is not None and self._total_cost >= self._budget * 0.8:
             print(
                 f"Warning: cost ${self._total_cost:.4f} has reached "
                 f"{self._total_cost / self._budget * 100:.0f}% of "

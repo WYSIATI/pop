@@ -6,7 +6,7 @@ from typing import Any
 
 from pop.models.base import ModelAdapter, StreamChunk
 from pop.models.router import ModelRouter
-from pop.types import Message, ModelResponse, ToolDefinition
+from pop.types import Message, ModelResponse
 
 # Global router instance
 _router = ModelRouter()

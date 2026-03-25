@@ -4,17 +4,20 @@ from __future__ import annotations
 
 import json
 import os
-from typing import Any, AsyncIterator
+from typing import TYPE_CHECKING, Any
 
 import httpx
 
-from pop.models.base import ModelAdapter, StreamChunk
-from pop.types import Message, ModelResponse, Role, ToolCall, ToolDefinition, TokenUsage
+from pop.models.base import StreamChunk
+from pop.types import Message, ModelResponse, Role, TokenUsage, ToolCall, ToolDefinition
 
+if TYPE_CHECKING:
+    from collections.abc import AsyncIterator
 
 # ---------------------------------------------------------------------------
 # Conversion helpers (pure functions, easy to test)
 # ---------------------------------------------------------------------------
+
 
 def messages_to_anthropic(
     messages: list[Message],
@@ -126,6 +129,7 @@ def parse_anthropic_response(raw: dict[str, Any]) -> ModelResponse:
 # Adapter class
 # ---------------------------------------------------------------------------
 
+
 class AnthropicAdapter:
     """Adapter for the Anthropic Messages API."""
 
@@ -200,8 +204,9 @@ class AnthropicAdapter:
         if anthropic_tools:
             payload["tools"] = anthropic_tools
 
-        async with httpx.AsyncClient() as client:
-            async with client.stream(
+        async with (
+            httpx.AsyncClient() as client,
+            client.stream(
                 "POST",
                 f"{self._base_url}/messages",
                 headers={
@@ -211,20 +216,21 @@ class AnthropicAdapter:
                 },
                 json=payload,
                 timeout=120.0,
-            ) as response:
-                response.raise_for_status()
-                async for line in response.aiter_lines():
-                    if not line.startswith("data: "):
-                        continue
-                    data = json.loads(line[6:])
-                    event_type = data.get("type", "")
-                    if event_type == "content_block_delta":
-                        delta = data.get("delta", {})
-                        if delta.get("type") == "text_delta":
-                            yield StreamChunk(delta_content=delta.get("text", ""))
-                    elif event_type == "message_delta":
-                        yield StreamChunk(
-                            finish_reason=data.get("delta", {}).get("stop_reason", ""),
-                        )
-                    elif event_type == "message_stop":
-                        break
+            ) as response,
+        ):
+            response.raise_for_status()
+            async for line in response.aiter_lines():
+                if not line.startswith("data: "):
+                    continue
+                data = json.loads(line[6:])
+                event_type = data.get("type", "")
+                if event_type == "content_block_delta":
+                    delta = data.get("delta", {})
+                    if delta.get("type") == "text_delta":
+                        yield StreamChunk(delta_content=delta.get("text", ""))
+                elif event_type == "message_delta":
+                    yield StreamChunk(
+                        finish_reason=data.get("delta", {}).get("stop_reason", ""),
+                    )
+                elif event_type == "message_stop":
+                    break
