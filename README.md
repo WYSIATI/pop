@@ -7,7 +7,7 @@
 </p>
 
 <p align="center">
-  <a href="https://pypi.org/project/pop-framework/"><img src="https://img.shields.io/pypi/v/pop-framework" alt="PyPI"></a>
+  <a href="https://pypi.org/project/pop-framework/"><img src="https://img.shields.io/pypi/v/pop-framework?v=1.0.0" alt="PyPI"></a>
   <a href="https://github.com/WYSIATI/pop/blob/main/LICENSE"><img src="https://img.shields.io/badge/license-MIT-blue" alt="License"></a>
 </p>
 
