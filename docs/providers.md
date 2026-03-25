@@ -1,16 +1,18 @@
 # LLM Providers
 
-pop supports multiple LLM providers through a unified interface. Switching providers is a one-string change -- the rest of your code stays identical.
+pop supports 7 LLM providers through a unified interface. All providers are included in the base install — no extras needed. Switching providers is a one-string change.
 
 ## Supported Providers
 
-| Provider | Model string | Install extra |
-|----------|-------------|---------------|
-| OpenAI | `openai:gpt-4o` | `pop-framework[openai]` |
-| Anthropic | `anthropic:claude-sonnet-4-20250514` | `pop-framework[anthropic]` |
-| Google Gemini | `gemini:gemini-2.0-flash` | `pop-framework[gemini]` |
-| DeepSeek | `deepseek:deepseek-chat` | *(uses OpenAI-compatible API)* |
-| Kimi | `kimi:moonshot-v1-auto` | *(uses OpenAI-compatible API)* |
+| Provider | Model string |
+|----------|-------------|
+| OpenAI | `openai:gpt-4o` |
+| Anthropic | `anthropic:claude-sonnet-4-20250514` |
+| Google Gemini | `gemini:gemini-2.0-flash` |
+| DeepSeek | `deepseek:deepseek-chat` |
+| Kimi | `kimi:moonshot-v1-auto` |
+| MiniMax | `minimax:MiniMax-Text-01` |
+| GLM | `glm:glm-4-flash` |
 
 ## Switching Providers
 
@@ -38,21 +40,6 @@ agent = Agent(
     ],
     tools=[search],
 )
-```
-
-## Installing Provider Extras
-
-```bash
-# Single provider
-uv add "pop-framework[openai]"
-uv add "pop-framework[anthropic]"
-uv add "pop-framework[gemini]"
-
-# All providers
-uv add "pop-framework[all]"
-
-# Or with pip
-pip install "pop-framework[openai]"
 ```
 
 ## Using the Low-Level Model Adapter

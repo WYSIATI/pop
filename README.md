@@ -77,22 +77,6 @@ That's it. No `StateGraph`, no `RunnableSequence`, no `ChannelWrite`.
 
 Details: [docs/benchmarks.md](docs/benchmarks.md)
 
-## Community
-
-- [GitHub Issues](https://github.com/WYSIATI/pop/issues) -- bug reports
-- [GitHub Discussions](https://github.com/WYSIATI/pop/discussions) -- feature ideas, Q&A
-
-## Contributing
-
-```bash
-git clone https://github.com/WYSIATI/pop.git
-cd pop
-uv sync --group dev
-uv run pytest              # 327 tests
-uv run ruff check src/     # lint
-uv run mypy src/pop/       # type check (strict)
-```
-
 ## License
 
 MIT

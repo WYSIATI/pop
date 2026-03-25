@@ -1,8 +1,7 @@
 """Core types for the pop agent framework.
 
 All types are immutable (frozen dataclasses) to enable deterministic replay,
-checkpoint/resume, and safe concurrent access. This is a deliberate design
-choice — see FRAMEWORK_ARCHITECTURE.md Section 5.6 for rationale.
+checkpoint/resume, and safe concurrent access.
 """
 
 from __future__ import annotations
