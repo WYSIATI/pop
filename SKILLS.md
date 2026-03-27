@@ -296,7 +296,7 @@ runner = Runner(agent, hooks=[
 
 ## 9. Providers
 
-7 built-in: OpenAI, Anthropic, Gemini, DeepSeek, Kimi, MiniMax, GLM.
+8 built-in: OpenAI, Anthropic, Gemini, DeepSeek, Grok (xAI), Kimi, MiniMax, GLM.
 
 ```python
 # Switch by changing the string

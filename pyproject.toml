@@ -1,12 +1,12 @@
 [project]
 name = "pop-framework"
-version = "1.0.0"
+version = "1.1.0"
 description = "Fast, lean AI agents. 5 lines to production."
 readme = "README.md"
 license = "MIT"
 requires-python = ">=3.10"
 authors = [{ name = "Chester Lee" }]
-keywords = ["ai", "agents", "llm", "framework", "openai", "anthropic"]
+keywords = ["ai", "agents", "llm", "framework", "openai", "anthropic", "grok", "xai"]
 classifiers = [
     "Development Status :: 5 - Production/Stable",
     "Intended Audience :: Developers",

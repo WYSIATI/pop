@@ -7,7 +7,7 @@
 </p>
 
 <p align="center">
-  <a href="https://pypi.org/project/pop-framework/"><img src="https://img.shields.io/pypi/v/pop-framework?v=1.0.0" alt="PyPI"></a>
+  <a href="https://pypi.org/project/pop-framework/"><img src="https://img.shields.io/pypi/v/pop-framework?v=1.1.0" alt="PyPI"></a>
   <a href="https://github.com/WYSIATI/pop/blob/main/LICENSE"><img src="https://img.shields.io/badge/license-MIT-blue" alt="License"></a>
 </p>
 
@@ -22,7 +22,7 @@
 ## Why pop?
 
 - **5 lines to a working agent** -- define a tool, create an agent, call `run`.
-- **7 LLM providers built-in** -- OpenAI, Anthropic, Gemini, DeepSeek, Kimi, MiniMax, GLM. Switch by changing one string.
+- **8 LLM providers built-in** -- OpenAI, Anthropic, Gemini, DeepSeek, Grok, Kimi, MiniMax, GLM. Switch by changing one string.
 - **~2,500 lines of code** -- read the entire framework in an afternoon.
 - **2 runtime dependencies** -- `httpx` and `pydantic`. Import time under 1ms (lazy imports).
 - **Zero commercial dependencies** -- no forced telemetry, no vendor lock-in.
@@ -35,7 +35,7 @@ uv add pop-framework
 pip install pop-framework
 ```
 
-All 7 providers (OpenAI, Anthropic, Gemini, DeepSeek, Kimi, MiniMax, GLM) are included — no extras needed.
+All 8 providers (OpenAI, Anthropic, Gemini, DeepSeek, Grok, Kimi, MiniMax, GLM) are included — no extras needed.
 
 ## Quick Start
 

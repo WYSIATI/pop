@@ -1,6 +1,6 @@
 # LLM Providers
 
-pop supports 7 LLM providers through a unified interface. All providers are included in the base install — no extras needed. Switching providers is a one-string change.
+pop supports 8 LLM providers through a unified interface. All providers are included in the base install — no extras needed. Switching providers is a one-string change.
 
 ## Supported Providers
 
@@ -10,6 +10,7 @@ pop supports 7 LLM providers through a unified interface. All providers are incl
 | Anthropic | `anthropic:claude-sonnet-4-20250514` |
 | Google Gemini | `gemini:gemini-2.0-flash` |
 | DeepSeek | `deepseek:deepseek-chat` |
+| Grok (xAI) | `grok:grok-3` |
 | Kimi | `kimi:moonshot-v1-auto` |
 | MiniMax | `minimax:MiniMax-Text-01` |
 | GLM | `glm:glm-4-flash` |
@@ -23,6 +24,7 @@ from pop import Agent
 agent = Agent(model="openai:gpt-4o", tools=[search])
 agent = Agent(model="anthropic:claude-sonnet-4-20250514", tools=[search])
 agent = Agent(model="deepseek:deepseek-chat", tools=[search])
+agent = Agent(model="grok:grok-3", tools=[search])
 agent = Agent(model="gemini:gemini-2.0-flash", tools=[search])
 agent = Agent(model="kimi:moonshot-v1-auto", tools=[search])
 ```
