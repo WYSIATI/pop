@@ -49,6 +49,7 @@ class ModelRouter:
         ("kimi", "pop.models.kimi", "KimiAdapter"),
         ("minimax", "pop.models.minimax", "MiniMaxAdapter"),
         ("glm", "pop.models.glm", "GLMAdapter"),
+        ("grok", "pop.models.grok", "GrokAdapter"),
     )
 
     def _register_defaults(self) -> None:
