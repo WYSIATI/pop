@@ -27,6 +27,28 @@
 - **2 runtime dependencies** -- `httpx` and `pydantic`. Import time under 1ms (lazy imports).
 - **Zero commercial dependencies** -- no forced telemetry, no vendor lock-in.
 
+## Benchmarks
+
+<p align="center">
+  <img src="assets/bench-import-time.svg" alt="Import Time: pop vs smolagents vs LangChain" width="700">
+</p>
+
+<p align="center">
+  <img src="assets/bench-overhead.svg" alt="Framework Overhead: pop vs smolagents vs LangChain" width="700">
+</p>
+
+<p align="center">
+  <img src="assets/bench-deps.svg" alt="Dependencies: pop vs smolagents vs LangChain" width="700">
+</p>
+
+<p align="center">
+  <img src="assets/bench-dx.svg" alt="Developer Experience: lines of code per task" width="700">
+</p>
+
+> Reproduce: `python benchmarks/bench_startup.py && python benchmarks/bench_dx.py && python benchmarks/generate_charts.py`
+
+Details: [docs/benchmarks.md](docs/benchmarks.md)
+
 ## Install
 
 ```bash
@@ -65,28 +87,6 @@ That's it. No `StateGraph`, no `RunnableSequence`, no `ChannelWrite`.
 | [Multi-Agent](docs/multi-agent.md) | Handoff, pipeline, debate, fan_out |
 | [Memory](docs/memory.md) | In-memory and markdown-based persistence |
 | [Benchmarks](docs/benchmarks.md) | Performance numbers, framework comparison |
-
-## Benchmarks
-
-<p align="center">
-  <img src="assets/bench-import-time.svg" alt="Import Time: pop vs smolagents vs LangChain" width="700">
-</p>
-
-<p align="center">
-  <img src="assets/bench-overhead.svg" alt="Framework Overhead: pop vs LangChain" width="700">
-</p>
-
-<p align="center">
-  <img src="assets/bench-deps.svg" alt="Dependencies: pop vs smolagents vs LangChain" width="700">
-</p>
-
-<p align="center">
-  <img src="assets/bench-dx.svg" alt="Developer Experience: lines of code per task" width="700">
-</p>
-
-> Reproduce: `python benchmarks/bench_startup.py && python benchmarks/bench_dx.py && python benchmarks/generate_charts.py`
-
-Details: [docs/benchmarks.md](docs/benchmarks.md)
 
 ## License
 

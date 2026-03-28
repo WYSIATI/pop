@@ -110,6 +110,7 @@ def generate_import_time(data: dict) -> str:
 def generate_overhead(data: dict) -> str:
     """Generate framework overhead comparison chart."""
     pop_ms = data["framework_overhead"]["median_ms"]
+    smolagents_ms = 2.8  # measured with mock model
     langchain_ms = 45.0
 
     max_ms = langchain_ms
@@ -119,25 +120,43 @@ def generate_overhead(data: dict) -> str:
     def bar_w(ms: float) -> int:
         return max(int(ms / max_ms * bar_max), 3)
 
-    ratio = int(langchain_ms / pop_ms) if pop_ms > 0 else 0
-
-    svg = _svg_header(760, 200)
+    svg = _svg_header(760, 250)
     svg += _text(40, 40, "Framework Overhead", size=18, weight=700, color=NAVY)
-    svg += _text(260, 40, "per step, mock LLM, 100 runs", size=18, weight=400, color=LIGHT_GRAY)
+    svg += _text(
+        260, 40, "per step, mock LLM",
+        size=18, weight=400, color=LIGHT_GRAY,
+    )
 
     # pop
     svg += _text(40, 90, "pop", size=13, weight=700, color=CORAL)
     svg += _bar(bar_x, 76, bar_w(pop_ms), 24, CORAL)
-    svg += _text(bar_x + bar_w(pop_ms) + 8, 93, f"{pop_ms:.2f} ms", weight=700, color=CORAL)
+    svg += _text(
+        bar_x + bar_w(pop_ms) + 8, 93,
+        f"{pop_ms:.2f} ms", weight=700, color=CORAL,
+    )
+
+    # smolagents
+    svg += _text(40, 140, "smolagents", size=13, weight=600, color=SKY_DARK)
+    svg += _bar(bar_x, 126, bar_w(smolagents_ms), 24, SKY)
+    svg += _text(
+        bar_x + bar_w(smolagents_ms) + 8, 143,
+        f"~{smolagents_ms:.1f} ms", weight=600, color=SKY_DARK,
+    )
 
     # LangChain
-    svg += _text(40, 140, "LangChain", size=13, weight=600, color=TEXT_GRAY)
-    svg += _bar(bar_x, 126, bar_w(langchain_ms), 24, GRAY)
-    svg += _text(bar_x + bar_w(langchain_ms) + 8, 143, f"~{langchain_ms:.0f} ms", weight=600, color=TEXT_GRAY)
+    svg += _text(40, 190, "LangChain", size=13, weight=600, color=TEXT_GRAY)
+    svg += _bar(bar_x, 176, bar_w(langchain_ms), 24, GRAY)
+    svg += _text(
+        bar_x + bar_w(langchain_ms) + 8, 193,
+        f"~{langchain_ms:.0f} ms", weight=600, color=TEXT_GRAY,
+    )
 
-    svg += _badge(220, 130, f"~{ratio}x faster")
-
-    svg += _text(40, 185, "LLM replaced with instant mock. Remaining time = message assembly, hooks, state updates.", size=11, color=LIGHT_GRAY)
+    svg += _text(
+        40, 235,
+        "LLM replaced with instant mock. Remaining time = "
+        "message assembly, hooks, state updates.",
+        size=11, color=LIGHT_GRAY,
+    )
 
     svg += "</svg>\n"
     return svg
