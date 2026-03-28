@@ -17,9 +17,9 @@ you pay for the LLM, not the scaffolding.
 
 | | pop | LangChain | Speedup |
 |---|---|---|---|
-| Cold import | 0.24ms | ~1200ms | ~5,088x faster |
+| Cold import | 0.28ms | ~1200ms | ~4,215x faster |
 
-Measured: mean **0.24ms**, min 0.20ms, max 0.47ms \
+Measured: mean **0.28ms**, min 0.21ms, max 0.80ms \
 (10 cold-process runs)
 
 **Why it's fast:** pop uses lazy imports. `import pop` loads only the package index (~50 lines).
@@ -32,9 +32,9 @@ entire dependency tree at import time (~1,200ms on a cold interpreter).
 
 | | pop | LangChain | Speedup |
 |---|---|---|---|
-| Per-step overhead | 0.12ms | ~45ms | ~374x faster |
+| Per-step overhead | 0.14ms | ~45ms | ~317x faster |
 
-Measured: mean 0.13ms, median **0.12ms** \
+Measured: mean 0.16ms, median **0.14ms** \
 (100 iterations, instant mock LLM)
 
 **Method:** The LLM is replaced with a mock that returns instantly. Remaining time = pure
@@ -75,7 +75,7 @@ pop requires **71% fewer lines** on average (12 vs 41 lines).
 
 | | pop | LangChain |
 |---|---|---|
-| Core source | 2,683 lines | ~188,000 lines |
+| Core source | 3,062 lines | ~188,000 lines |
 | Runtime deps | 2 | 20+ |
 | Dep names | httpx>=0.27, pydantic>=2.0 | langchain, langchain-core, langsmith, openai, tiktoken, ... |
 

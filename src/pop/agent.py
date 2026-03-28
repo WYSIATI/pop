@@ -67,10 +67,20 @@ class Agent:
         reflect_on_failure: bool = False,
         output_guardrails: list[Callable[[str], bool]] | None = None,
         core_memory: dict[str, str] | None = None,
+        workers: list[Agent] | None = None,
     ) -> None:
         self.name = name
         self.instructions = instructions
-        self._tools: tuple[ToolDefinition, ...] = tuple(tools) if tools else ()
+
+        # Collect tools: explicit tools + auto-generated handoff tools for workers
+        all_tools: list[ToolDefinition] = list(tools) if tools else []
+        if workers:
+            from pop.multi.handoff import handoff
+
+            for worker in workers:
+                all_tools.append(handoff(worker))
+
+        self._tools: tuple[ToolDefinition, ...] = tuple(all_tools)
         self._tool_map: dict[str, ToolDefinition] = {t.name: t for t in self._tools}
         self._memory = memory
         self._hook_manager = HookManager(hooks)

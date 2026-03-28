@@ -1,6 +1,6 @@
 [project]
 name = "pop-framework"
-version = "1.1.0"
+version = "1.2.0"
 description = "Fast, lean AI agents. 5 lines to production."
 readme = "README.md"
 license = "MIT"
@@ -23,6 +23,11 @@ classifiers = [
 dependencies = [
     "httpx>=0.27",
     "pydantic>=2.0",
+]
+
+[project.optional-dependencies]
+tools = [
+    "duckduckgo-search>=7.0",
 ]
 
 [dependency-groups]
@@ -79,8 +84,9 @@ ignore = [
 
 [tool.ruff.lint.per-file-ignores]
 "tests/**" = ["ARG", "PLR", "PT", "SLF", "PLC0415", "PERF401", "PLW0108", "RUF059"]
-"benchmarks/**" = ["INP", "T20"]
+"benchmarks/**" = ["INP", "T20", "E501", "ARG001"]
 "examples/**" = ["INP", "T20"]
+"src/pop/tools/**" = ["N802"]  # PascalCase factory functions (WebSearch, ReadURL, Calculator)
 
 [tool.ruff.format]
 quote-style = "double"

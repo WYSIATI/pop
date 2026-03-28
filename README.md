@@ -7,7 +7,7 @@
 </p>
 
 <p align="center">
-  <a href="https://pypi.org/project/pop-framework/"><img src="https://img.shields.io/pypi/v/pop-framework?v=1.1.0" alt="PyPI"></a>
+  <a href="https://pypi.org/project/pop-framework/"><img src="https://img.shields.io/pypi/v/pop-framework?v=1.2.0" alt="PyPI"></a>
   <a href="https://github.com/WYSIATI/pop/blob/main/LICENSE"><img src="https://img.shields.io/badge/license-MIT-blue" alt="License"></a>
 </p>
 
@@ -68,12 +68,23 @@ That's it. No `StateGraph`, no `RunnableSequence`, no `ChannelWrite`.
 
 ## Benchmarks
 
-| Metric | pop | LangChain + LangGraph | Delta |
-|--------|-----|----------------------|-------|
-| Framework overhead | ~0.15ms | ~45ms | ~300x faster |
-| Import time | ~0.17ms | ~1,200ms | ~7,000x faster |
-| Lines of code (avg task) | ~12 | ~42 | 71% less |
-| Dependencies | 2 | 20+ | 90% fewer |
+<p align="center">
+  <img src="assets/bench-import-time.svg" alt="Import Time: pop vs smolagents vs LangChain" width="700">
+</p>
+
+<p align="center">
+  <img src="assets/bench-overhead.svg" alt="Framework Overhead: pop vs LangChain" width="700">
+</p>
+
+<p align="center">
+  <img src="assets/bench-deps.svg" alt="Dependencies: pop vs smolagents vs LangChain" width="700">
+</p>
+
+<p align="center">
+  <img src="assets/bench-dx.svg" alt="Developer Experience: lines of code per task" width="700">
+</p>
+
+> Reproduce: `python benchmarks/bench_startup.py && python benchmarks/bench_dx.py && python benchmarks/generate_charts.py`
 
 Details: [docs/benchmarks.md](docs/benchmarks.md)
 

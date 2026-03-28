@@ -890,3 +890,43 @@ async def test_parallel_tool_calls_with_error():
     # Second tool call fails
     assert tool_steps[1].error is not None
     assert "Boom: boom" in tool_steps[1].error
+
+
+# ---------------------------------------------------------------------------
+# Workers shorthand — Agent(workers=[...]) auto-wires handoff tools
+# ---------------------------------------------------------------------------
+
+
+def test_workers_creates_handoff_tools():
+    """Agent(workers=[...]) auto-creates handoff tools for each worker."""
+    adapter = MockAdapter([])
+    worker_a = Agent(model=adapter, name="researcher", instructions="Research things", max_steps=1)
+    worker_b = Agent(model=adapter, name="writer", instructions="Write things", max_steps=1)
+
+    boss = Agent(model=adapter, workers=[worker_a, worker_b], max_steps=1)
+
+    tool_names = [t.name for t in boss._tools]
+    assert "handoff_to_researcher" in tool_names
+    assert "handoff_to_writer" in tool_names
+    assert len(boss._tools) == 2
+
+
+def test_workers_combined_with_explicit_tools():
+    """Workers handoff tools are appended to explicitly provided tools."""
+    adapter = MockAdapter([])
+    explicit_tool = _add_tool()
+    worker = Agent(model=adapter, name="helper", max_steps=1)
+
+    boss = Agent(model=adapter, tools=[explicit_tool], workers=[worker], max_steps=1)
+
+    tool_names = [t.name for t in boss._tools]
+    assert "add" in tool_names
+    assert "handoff_to_helper" in tool_names
+    assert len(boss._tools) == 2
+
+
+def test_workers_none_is_default():
+    """Agent without workers param has no auto-generated handoff tools."""
+    adapter = MockAdapter([])
+    agent = Agent(model=adapter, max_steps=1)
+    assert len(agent._tools) == 0

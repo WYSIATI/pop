@@ -1,34 +1,34 @@
 {
   "import_time": {
-    "mean_ms": 0.26963750000000003,
-    "min_ms": 0.199167,
-    "max_ms": 0.684042,
+    "mean_ms": 0.284646,
+    "min_ms": 0.207292,
+    "max_ms": 0.796958,
     "iterations": 10
   },
   "agent_creation": {
-    "mean_ms": 0.00047244,
+    "mean_ms": 0.00051402,
     "min_ms": 0.000416,
-    "max_ms": 0.003417,
-    "median_ms": 0.000458,
+    "max_ms": 0.018291,
+    "median_ms": 0.000459,
     "iterations": 1000
   },
   "framework_overhead": {
-    "mean_ms": 0.13204749999999998,
-    "min_ms": 0.115709,
-    "max_ms": 1.0775,
-    "median_ms": 0.119708,
+    "mean_ms": 0.15535499,
+    "min_ms": 0.126625,
+    "max_ms": 0.673125,
+    "median_ms": 0.141542,
     "iterations": 100
   },
   "code_stats": {
-    "total_lines": 3045,
-    "files": 30
+    "total_lines": 3062,
+    "files": 31
   },
   "dependencies": [
     "httpx>=0.27",
     "pydantic>=2.0"
   ],
   "test_stats": {
-    "lines": 5155,
-    "files": 25
+    "lines": 5258,
+    "files": 26
   }
 }

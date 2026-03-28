@@ -1,49 +1,28 @@
 {
   "tasks": {
     "hello_world_agent": {
-      "pop": 5,
-      "langchain": 35,
-      "description": "Simplest possible agent with one tool"
+      "pop": 10,
+      "smolagents": 11,
+      "langchain": 11,
+      "description": "Simplest possible agent with one custom tool"
     },
     "web_search_agent": {
-      "pop": 12,
-      "langchain": 45,
-      "description": "Agent with search tool and instructions"
-    },
-    "structured_output": {
-      "pop": 15,
-      "langchain": 40,
-      "description": "Agent returning structured Pydantic data"
-    },
-    "streaming": {
-      "pop": 15,
-      "langchain": 50,
-      "description": "Streaming agent with event handling"
-    },
-    "multi_provider": {
-      "pop": 20,
-      "langchain": 60,
-      "description": "Same agent across multiple LLM providers"
-    },
-    "tool_definition": {
-      "pop": 6,
-      "langchain": 15,
-      "description": "Define a single tool"
+      "pop": 4,
+      "smolagents": 4,
+      "langchain": 12,
+      "description": "Agent with built-in search tool"
     },
     "multi_agent_handoff": {
-      "pop": 15,
-      "langchain": 55,
-      "description": "Two-agent handoff (customer support)"
-    },
-    "agent_with_memory": {
-      "pop": 10,
+      "pop": 5,
+      "smolagents": 12,
       "langchain": 35,
-      "description": "Agent with persistent memory"
+      "description": "Two-agent handoff"
     }
   },
   "summary": {
-    "avg_pop_lines": 12.25,
-    "avg_langchain_lines": 41.875,
-    "avg_reduction_pct": 71
+    "avg_pop_lines": 6.333333333333333,
+    "avg_smolagents_lines": 9.0,
+    "avg_langchain_lines": 19.333333333333332,
+    "avg_reduction_vs_langchain_pct": 67
   }
 }
