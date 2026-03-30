@@ -4,29 +4,43 @@ All benchmarks are measured, reproducible, and run from real processes. No fabri
 
 ## Summary
 
-| Metric | pop | LangChain + LangGraph | Delta |
-|--------|-----|----------------------|-------|
-| Framework overhead per step | ~0.15ms | ~45ms | ~300x faster |
-| Import time | ~0.17ms | ~1,200ms | ~7,000x faster |
-| Lines of code (avg task) | 12 | 42 | 71% less code |
-| Dependencies | 2 | 20+ | 90% fewer |
-| Core source | ~2,600 lines | ~188,000 lines | 1/72nd the size |
+| Metric | pop | smolagents | LangChain + LangGraph |
+|--------|-----|------------|----------------------|
+| Import time | ~0.28ms | ~740ms | ~1,200ms |
+| Framework overhead per step | ~0.14ms | ~2.8ms | ~45ms |
+| Runtime dependencies | 2 | 6 | 20+ |
+| Lines of code (avg task) | 6 | 9 | 19 |
 
 > Task accuracy and cost are determined by the LLM model, not the framework.
-> Both frameworks call the same model — accuracy is identical.
+> All frameworks call the same model — accuracy is identical.
 
 ## Running Benchmarks
 
 ```bash
+# Startup performance (import time, agent creation, framework overhead)
+python benchmarks/bench_startup.py
+
 # Developer experience comparison (lines of code)
 python benchmarks/bench_dx.py
 
-# Startup performance (import time, agent creation, framework overhead)
-python benchmarks/bench_startup.py
+# Generate SVG charts
+python benchmarks/generate_charts.py
 ```
 
 Results are written to `benchmarks/results/latest.json` and a human-readable summary to
-`benchmarks/results/latest_report.md`.
+`benchmarks/results/latest_report.md`. Charts are written to `assets/`.
+
+## Developer Experience: Lines of Code
+
+Hand-counted from official docs. Docstrings excluded.
+
+| Task | pop | smolagents | LangChain |
+|------|-----|------------|-----------|
+| Hello World (agent + 1 custom tool) | 10 | 11 | 11 |
+| Web Search (built-in tool) | 4 | 4 | 12 |
+| Multi-Agent Handoff | 5 | 12 | 35 |
+
+pop uses `pop.tools.WebSearch()` (built-in) and `Agent(workers=[...])` shorthand.
 
 ## pop vs LangChain + LangGraph
 
@@ -34,8 +48,9 @@ Results are written to `benchmarks/results/latest.json` and a human-readable sum
 |-----------|-----|----------------------|
 | Agent loop | `Agent.run()` | StateGraph + nodes + edges + compile |
 | Tool definition | `@tool` decorator | `BaseTool` subclass or `@tool` + schema |
+| Built-in tools | `WebSearch()`, `ReadURL()`, `Calculator()` | TavilySearch, WikipediaQuery, ... |
 | Streaming | `async for event in runner.stream()` | Callbacks + `astream_events` |
-| Multi-agent | `handoff()`, `pipeline()`, `debate()` | LangGraph subgraphs + channels |
+| Multi-agent | `handoff()`, `pipeline()`, `debate()`, `workers=` | LangGraph subgraphs + channels |
 | Provider switching | Change one string | Swap class imports + init params |
 | Memory | Built-in, 2 backends | LangChain Memory / LangGraph checkpointer |
 | Error recovery | Built-in Reflexion loop | Manual retry logic |

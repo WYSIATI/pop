@@ -62,16 +62,11 @@ All 8 providers (OpenAI, Anthropic, Gemini, DeepSeek, Grok, Kimi, MiniMax, GLM) 
 ## Quick Start
 
 ```python
-from pop import Agent, tool
+from pop import Agent
+from pop.tools import WebSearch
 
-@tool
-def search(query: str) -> str:
-    """Search the web for current information."""
-    return web_search(query)  # your implementation
-
-agent = Agent(model="openai:gpt-4o", tools=[search])
-result = agent.run("What happened in AI today?")
-print(result.output)
+agent = Agent(model="openai:gpt-4o", tools=[WebSearch()])
+print(agent.run("What happened in AI today?").output)
 ```
 
 That's it. No `StateGraph`, no `RunnableSequence`, no `ChannelWrite`.

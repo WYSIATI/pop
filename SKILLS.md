@@ -86,7 +86,31 @@ def save_contact(contact: Contact) -> str:
 
 **Supported types:** `str`, `int`, `float`, `bool`, `list[T]`, `dict`, Pydantic models, `Optional[T]`.
 
-## 3. Agent Configuration
+## 3. Built-in Tools
+
+Ready-to-use tools that require no implementation. Install with:
+
+```bash
+pip install pop-framework[tools]
+```
+
+```python
+from pop.tools import WebSearch, ReadURL, Calculator
+
+# Web search via DuckDuckGo
+agent = Agent(model="openai:gpt-4o", tools=[WebSearch()])
+
+# Fetch URL content (uses httpx, already a dependency)
+agent = Agent(model="openai:gpt-4o", tools=[ReadURL()])
+
+# Safe math evaluation (no dependencies)
+agent = Agent(model="openai:gpt-4o", tools=[Calculator()])
+
+# Combine them
+agent = Agent(model="openai:gpt-4o", tools=[WebSearch(), ReadURL(), Calculator()])
+```
+
+## 4. Agent Configuration
 
 ```python
 agent = Agent(
@@ -94,6 +118,7 @@ agent = Agent(
     name="researcher",                # name for multi-agent identification
     tools=[search, fetch_page],       # list of @tool-decorated functions
     instructions="You are a research assistant. Cite sources.",
+    workers=[other_agent],            # auto-wire handoff tools for these agents
     max_steps=10,                     # max ReAct loop iterations (default: 10)
     max_cost=0.50,                    # USD budget cap (optional)
     max_retries=3,                    # retries on transient errors
@@ -111,7 +136,7 @@ agent = Agent(
 )
 ```
 
-## 4. Running Agents
+## 5. Running Agents
 
 ### Sync
 
@@ -149,7 +174,7 @@ async for event in runner.stream("What should I wear in SF?"):
             print(f"\nCost: ${result.cost:.6f}")
 ```
 
-## 5. Multi-Agent Patterns
+## 6. Multi-Agent Patterns
 
 ### Handoff
 
@@ -171,6 +196,15 @@ triage = Agent(
     ],
 )
 result = triage.run("I was charged twice")
+```
+
+**Shorthand: `workers` parameter.** Equivalent to the above, without explicit `handoff()` calls:
+
+```python
+triage = Agent(
+    model="openai:gpt-4o-mini",
+    workers=[billing, tech],
+)
 ```
 
 ### Pipeline
@@ -222,7 +256,7 @@ result = await fan_out(
 )
 ```
 
-## 6. Workflows (No Agent Loop)
+## 7. Workflows (No Agent Loop)
 
 For simpler LLM patterns that don't need tool-calling or a ReAct loop.
 
@@ -250,7 +284,7 @@ results = await parallel(m, [
 ], context="...")
 ```
 
-## 7. Memory
+## 8. Memory
 
 ### In-Memory (Default)
 
@@ -282,7 +316,7 @@ Default directory: `~/.pop/memory`. Override with `POP_MEMORY_DIR` env var or th
 
 Core memory (`dict[str, str]`) is always included in context. Episodes and conversations persist as markdown files on disk.
 
-## 8. Hooks
+## 9. Hooks
 
 ```python
 from pop.hooks import ConsoleHook, CostHook, FileLogHook
@@ -294,7 +328,7 @@ runner = Runner(agent, hooks=[
 ])
 ```
 
-## 9. Providers
+## 10. Providers
 
 8 built-in: OpenAI, Anthropic, Gemini, DeepSeek, Grok (xAI), Kimi, MiniMax, GLM.
 
@@ -322,7 +356,7 @@ register_provider("my_provider", MyAdapter)
 Agent(model="my_provider:my-model")
 ```
 
-## 10. Inspecting Results
+## 11. Inspecting Results
 
 Every run returns `AgentResult` with a full trace:
 
@@ -364,4 +398,5 @@ from pop import (
 
 from pop.memory import MarkdownMemory, InMemoryStore
 from pop.hooks import ConsoleHook, CostHook, FileLogHook
+from pop.tools import WebSearch, ReadURL, Calculator  # pip install pop-framework[tools]
 ```

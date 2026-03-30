@@ -42,6 +42,16 @@ result = triage.run("I was charged twice for my subscription")
 # -> automatically routes to billing agent
 ```
 
+**Shorthand: `workers` parameter.** Auto-wires handoff tools without explicit `handoff()` calls:
+
+```python
+triage = Agent(
+    model="openai:gpt-4o-mini",
+    workers=[billing, tech],
+)
+# Equivalent to tools=[handoff(billing), handoff(tech)]
+```
+
 ## Pipeline
 
 Sequential processing: each agent's output feeds into the next.
